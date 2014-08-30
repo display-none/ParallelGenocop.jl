@@ -1,5 +1,6 @@
 module ParallelGenocop
+export create
 
-# package code goes here
+create() = nothing
 
 end # module
