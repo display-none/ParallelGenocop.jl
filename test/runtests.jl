@@ -1,5 +1,6 @@
-using ParallelGenocop
-using Base.Test
+tests = ["genocop_test.jl", "utils_test.jl"]
 
-# write your own tests here
-@test create() == nothing
+println("Running tests:")
+for test in tests
+  include(test)
+end
