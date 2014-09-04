@@ -1,7 +1,3 @@
-import ParallelGenocop
-using Base.Test
-
-
 
 begin #verifydimensions should throw error when matrix dimensions do not match vector dimensions
     matrix = [2.0 1.0 0.0 -3.5]

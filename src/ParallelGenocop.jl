@@ -1,4 +1,5 @@
 module ParallelGenocop
+using Logging
 
 export
     #main function
@@ -11,6 +12,7 @@ export
     #types
     GenocopSpec
 
+@Logging.configure(level=DEBUG)
 
 include("constants.jl")
 include("types.jl")

@@ -1,5 +1,3 @@
-using ParallelGenocop
-using Base.Test
 
 equalities = [2.0 1.0 0.0 -3.5]
 equalities_right = [1.0]
