@@ -49,13 +49,13 @@ begin #GenocopSpec constructor should set passed optional values in the object
                                             max_iterations = 666,
                                             operator_frequency = Integer[1, 2, 3, 4, 5, 6, 7],
                                             cumulative_prob_coeff = 0.32,
-                                            minmax = Max,
-                                            starting_population_type=SinglePointStartPop)
+                                            minmax = maximization,
+                                            starting_population_type=single_point_start_pop)
 
     @test spec.population_size == 69
     @test spec.max_iterations == 666
     @test spec.operator_frequency == Integer[1, 2, 3, 4, 5, 6, 7]
     @test spec.cumulative_prob_coeff == 0.32
-    @test spec.minmax == Max
-    @test spec.starting_population_type == SinglePointStartPop
+    @test spec.minmax == maximization
+    @test spec.starting_population_type == single_point_start_pop
 end
