@@ -1,15 +1,28 @@
 
-begin #verifydimensions should throw error when matrix dimensions do not match vector dimensions
+begin #verifydimensionsrows should throw error when no of rows in a matrix does not match vector length
     matrix = [2.0 1.0 0.0 -3.5]
     vector = [1.0, 3.2]
-    @test_throws ArgumentError ParallelGenocop.verifydimensions(matrix, vector)
+    @test_throws ArgumentError ParallelGenocop.verifydimensionsrows(matrix, vector)
 end
 
-begin #verifydimensions should do nothing when matrix dimensions match vector dimensions
+begin #verifydimensionsrows should do nothing when no of rows matches vector length
     matrix = [2.0 1.0 0.0 -3.5
               2.4 3.4 0.3 -1.2]
     vector = [1.0, 4.3]
-    ParallelGenocop.verifydimensions(matrix, vector)
+    ParallelGenocop.verifydimensionsrows(matrix, vector)
+end
+
+begin #verifydimensionscolumns should throw error when no of columns in a matrix does not match vector length
+    matrix = [2.0 1.0 0.0 -3.5]
+    vector = [1.0, 3.2]
+    @test_throws ArgumentError ParallelGenocop.verifydimensionscolumns(matrix, vector)
+end
+
+begin #verifydimensionscolumns should do nothing when no of columns matches vector length
+    matrix = [2.0 1.0 0.0 -3.5
+              2.4 3.4 0.3 -1.2]
+    vector = [1.0, 4.3, 2.6, -4.3]
+    ParallelGenocop.verifydimensionscolumns(matrix, vector)
 end
 
 begin #verifysamesize should throw error when vectors sizes do not match

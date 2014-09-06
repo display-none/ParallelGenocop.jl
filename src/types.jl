@@ -4,7 +4,7 @@
 type GenocopSpec{T <: FloatingPoint}
     equalities::Matrix{T}
     equalities_right::Vector{T}
-    inqualities::Matrix{T}
+    inequalities::Matrix{T}
     inequalities_right::Vector{T}
     lower_bounds::Vector{T}
     upper_bounds::Vector{T}
@@ -28,8 +28,10 @@ type GenocopSpec{T <: FloatingPoint}
         minmax::MinMaxType,
         starting_population_type::StartPopType)
 
-        verifydimensions(equalities, equalities_right, "dimensions of equalities and its right hand side do not match")
-        verifydimensions(inequalities, inequalities_right, "dimensions of inequalities and its right hand side do not match")
+        verifydimensionsrows(equalities, equalities_right, "dimensions of equalities and its right hand side do not match")
+        verifydimensionsrows(inequalities, inequalities_right, "dimensions of inequalities and its right hand side do not match")
+        verifydimensionscolumns(equalities, lower_bounds, "dimensions of equalities and lower bounds do not match")
+        verifydimensionscolumns(inequalities, upper_bounds, "dimensions of inequalities and upper bounds do not match")
         verifysamesize(lower_bounds, upper_bounds)
         @assert population_size > 0 "population size must be a positive integer"
         @assert max_iterations > 0 "max iterations must be a positive integer"
