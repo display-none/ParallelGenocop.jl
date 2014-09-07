@@ -76,8 +76,12 @@ end
 # Individual type to store an individual
 
 type Individual{T <: FloatingPoint}
-   chromosome::Vector{T}
+    chromosome::Vector{T}
+    evaluation::Union(T, Nothing)
 
-
+    function Individual(chromosome::Vector{T})
+        new(chromosome, nothing)
+    end
 end
 
+Individual{T <: FloatingPoint}(chromosome::Vector{T}) = Individual{T}(chromosome)

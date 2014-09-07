@@ -1,32 +1,34 @@
-import ParallelGenocop
-using Base.Test
 
 
-begin #GenocopSpec constructor should assert population size is positive
+custom_suite("types test")
+
+
+
+custom_test("GenocopSpec constructor should assert population size is positive") do
     @test_throws ErrorException ParallelGenocop.GenocopSpec([.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2];population_size=-4)
 end
 
-begin #GenocopSpec constructor should assert max iterations is positive
+custom_test("GenocopSpec constructor should assert max iterations is positive") do
     @test_throws ErrorException ParallelGenocop.GenocopSpec([.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2];max_iterations=-4)
 end
 
-begin #GenocopSpec constructor should throw exception when operator frequency vector does not have 7 values
+custom_test("GenocopSpec constructor should throw exception when operator frequency vector does not have 7 values") do
     @test_throws ErrorException ParallelGenocop.GenocopSpec([.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2]
                                                                 ;operator_frequency=Integer[1, 2, 3, 4, 5])
 end
 
-begin #GenocopSpec constructor should not throw exception when operator frequency vector does not have 7 values
+custom_test("GenocopSpec constructor should not throw exception when operator frequency vector does not have 7 values") do
     ParallelGenocop.GenocopSpec([.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2]
                                                                 ;operator_frequency=Integer[1, 2, 3, 4, 5, 6, 7])
 end
 
-begin #GenocopSpec constructor should throw exception when sum of parents for reproduction exceeds population size
+custom_test("GenocopSpec constructor should throw exception when sum of parents for reproduction exceeds population size") do
     @test_throws ErrorException ParallelGenocop.GenocopSpec([.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2]
                                                                 ;operator_frequency=Integer[1, 2, 3, 4, 5, 6, 7],
                                                                 population_size=4)
 end
 
-begin #GenocopSpec constructor should set passed values and defaults in the object
+custom_test("GenocopSpec constructor should set passed values and defaults in the object") do
     spec = ParallelGenocop.GenocopSpec([.1 .2], [.3], [.4 .5], [.6], [.7, .8], [.9, .10])
 
     @test spec.equalities == [.1 .2]
@@ -43,7 +45,7 @@ begin #GenocopSpec constructor should set passed values and defaults in the obje
     @test spec.starting_population_type == ParallelGenocop._default_starting_population
 end
 
-begin #GenocopSpec constructor should set passed optional values in the object
+custom_test("GenocopSpec constructor should set passed optional values in the object") do
     spec = ParallelGenocop.GenocopSpec([.1 .2], [.3], [.4 .5], [.6], [.7, .8], [.9, .10];
                                             population_size = 69,
                                             max_iterations = 666,

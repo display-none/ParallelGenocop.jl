@@ -14,13 +14,13 @@ const maximization = MaxType()
 
 # StartPop to specify the type of the starting population
 #
-# use RandomStartPop for random starting population
-# use SinglePointStartPop for single point starting population
+# use MultiPointStartPopType for multi point starting population
+# use SinglePointStartPopType for single point starting population
 abstract StartPopType
-immutable RandomStartPopType <: StartPopType end
+immutable MultiPointStartPopType <: StartPopType end
 immutable SinglePointStartPopType <: StartPopType end
 
-const random_start_pop = RandomStartPopType()
+const multi_point_start_pop = MultiPointStartPopType()
 const single_point_start_pop = SinglePointStartPopType()
 
 
@@ -30,7 +30,7 @@ const _default_max_iter=500
 const _default_operator_frequency=Integer[4, 4, 4, 4, 4, 4, 4]
 const _default_cumulative_prob_coeff=0.1
 const _default_minmax_type=minimization
-const _default_starting_population=random_start_pop
+const _default_starting_population=multi_point_start_pop
 
 
 # constants for population initialization
