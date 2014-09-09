@@ -14,8 +14,8 @@ upper_bounds = Float64[8.0, 8.0, 3.1, 4.4]
 spec = GenocopSpec(equalities, equalities_right, inequalities, inequalities_right, lower_bounds,
 upper_bounds; starting_population_type=single_point_start_pop)
 
-eval_func = function(arg::Float64)
-                return 40
+eval_func = function(arg::Vector{Float64})
+                return 66.69
             end
 
 custom_test("genocop shouldReturnNothing") do

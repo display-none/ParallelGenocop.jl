@@ -77,7 +77,7 @@ end
 
 type Individual{T <: FloatingPoint}
     chromosome::Vector{T}
-    evaluation::Union(T, Nothing)
+    fitness::Union(T, Nothing)
 
     function Individual(chromosome::Vector{T})
         new(chromosome, nothing)

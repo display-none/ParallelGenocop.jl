@@ -11,7 +11,7 @@ export
     random_start_pop, single_point_start_pop,
 
     #types
-    GenocopSpec
+    GenocopSpec, Individual
 
 @Logging.configure(level=DEBUG)
 
@@ -21,6 +21,7 @@ include("utils.jl")
 
 include("evaluation.jl")
 include("initialization.jl")
+include("optimization.jl")
 
 
 
@@ -31,7 +32,8 @@ include("initialization.jl")
 # TODO: maybe it's possible to accept Numbers instead of FloatingPoints
 function genocop{T <: FloatingPoint}(specification::GenocopSpec{T}, evaluation_function::Function)
     @debug "genocop starting"
-    initialize_population(specification)
+    population::Vector{Individual{T}} = initialize_population(specification)
+    evaluate_population!(population, evaluation_function)
     nothing
 end
 
