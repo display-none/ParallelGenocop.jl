@@ -5,7 +5,8 @@ immutable type GenocopSpec{T <: FloatingPoint}
     equalities::Matrix{T}
     equalities_right::Vector{T}
     inequalities::Matrix{T}
-    inequalities_right::Vector{T}
+    inequalities_lower::Vector{T}
+    inequalities_upper::Vector{T}
     lower_bounds::Vector{T}
     upper_bounds::Vector{T}
     population_size::Integer
@@ -20,7 +21,8 @@ immutable type GenocopSpec{T <: FloatingPoint}
     function GenocopSpec{T}(equalities::Matrix{T},
         equalities_right::Vector{T},
         inequalities::Matrix{T},
-        inequalities_right::Vector{T},
+        inequalities_lower::Vector{T},
+        inequalities_upper::Vector{T},
         lower_bounds::Vector{T},
         upper_bounds::Vector{T},
         population_size::Integer,
@@ -31,7 +33,8 @@ immutable type GenocopSpec{T <: FloatingPoint}
         starting_population_type::StartPopType)
 
         verify_dimensions_rows(equalities, equalities_right, "dimensions of equalities and its right hand side do not match")
-        verify_dimensions_rows(inequalities, inequalities_right, "dimensions of inequalities and its right hand side do not match")
+        verify_dimensions_rows(inequalities, inequalities_lower, "dimensions of inequalities and its lower limits do not match")
+        verify_dimensions_rows(inequalities, inequalities_upper, "dimensions of inequalities and its upper limits do not match")
         verify_dimensions_columns(equalities, lower_bounds, "dimensions of equalities and lower bounds do not match")
         verify_dimensions_columns(inequalities, upper_bounds, "dimensions of inequalities and upper bounds do not match")
         verify_same_size(lower_bounds, upper_bounds)
@@ -46,7 +49,7 @@ immutable type GenocopSpec{T <: FloatingPoint}
 
         no_of_variables = length(lower_bounds)
 
-        new(equalities, equalities_right, inequalities, inequalities_right, lower_bounds,
+        new(equalities, equalities_right, inequalities, inequalities_lower, inequalities_upper, lower_bounds,
                 upper_bounds, population_size, max_iterations, operator_frequency,
                 cumulative_prob_coeff, minmax, starting_population_type, no_of_variables)
     end
@@ -67,10 +70,13 @@ function GenocopSpec{T <: FloatingPoint}(
         minmax::MinMaxType=_default_minmax_type,
         starting_population_type::StartPopType=_default_starting_population)
 
-        GenocopSpec{T}(equalities, equalities_right, inequalities, inequalities_right, lower_bounds,
+        inequalities_lower = T[-Inf for i in 1:length(inequalities_right)]
+
+        GenocopSpec{T}(equalities, equalities_right, inequalities, inequalities_lower, inequalities_right, lower_bounds,
                             upper_bounds, population_size, max_iterations, operator_frequency,
                             cumulative_prob_coeff, minmax, starting_population_type)
 end
+
 
 
 # Individual type to store an individual
@@ -78,10 +84,47 @@ end
 type Individual{T <: FloatingPoint}
     chromosome::Vector{T}
     fitness::Union(T, Nothing)
+    dead::Bool
 
     function Individual(chromosome::Vector{T})
-        new(chromosome, nothing)
+        new(chromosome, nothing, false)
+    end
+
+    function Individual(individual::Individual{T})
+        new(individual.chromosome, individual.fitness, individual.dead)
     end
 end
 
 Individual{T <: FloatingPoint}(chromosome::Vector{T}) = Individual{T}(chromosome)
+
+function copy(individual::Individual)
+    ind = Individual(individual.chromosome)
+    ind.fitness = individual.fitness
+    ind.dead = individual.dead
+    return ind
+end
+
+
+# Generation type to represent a generation
+
+type Generation{T <: FloatingPoint}
+    population::Vector{Individual{T}}
+    cumulative_probabilities::Vector{Float64}
+    operator_applications_left::Vector{Integer}
+
+    function Generation(population::Vector{Individual{T}}, operator_applications_left::Vector{Integer})
+        gen = new()
+        gen.population = population
+        gen.operator_applications_left = operator_applications_left
+        return gen
+    end
+end
+
+Generation{T <: FloatingPoint}(population::Vector{Individual{T}}, operator_applications_left::Vector{Integer}) = Generation{T}(population::Vector{Individual{T}}, operator_applications_left::Vector{Integer})
+
+
+
+# Operator type as a base class for operators
+
+abstract Operator
+

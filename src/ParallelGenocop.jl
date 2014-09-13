@@ -1,6 +1,7 @@
 module ParallelGenocop
 using Distributions
 using Logging
+import Base.copy
 
 export
     #main function
@@ -8,7 +9,7 @@ export
 
     #constants
     minimization, maximization,
-    random_start_pop, single_point_start_pop,
+    multi_point_start_pop, single_point_start_pop,
 
     #types
     GenocopSpec, Individual
@@ -21,6 +22,7 @@ include("utils.jl")
 
 include("evaluation.jl")
 include("initialization.jl")
+include("operators.jl")
 include("optimization.jl")
 
 
@@ -33,7 +35,11 @@ include("optimization.jl")
 function genocop{T <: FloatingPoint}(specification::GenocopSpec{T}, evaluation_function::Function)
     @debug "genocop starting"
     population::Vector{Individual{T}} = initialize_population(specification)
-    evaluate_population!(population, evaluation_function)
+    best_individual = optimize!(population, specification, evaluation_function)
+
+    @info "best individual: $best_individual"
+    feasible = is_feasible(best_individual, specification)
+    @info "individual feasible: $feasible"
     nothing
 end
 

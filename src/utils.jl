@@ -28,14 +28,32 @@ end
 
 
 function get_random_float{T <: FloatingPoint}(start::T, stop::T)
-   return rand(Uniform(start, stop))
+    start in [-Inf, Inf] && stop in [-Inf, Inf] && @error "infinities"      #todo: use realmin and realmax
+    if start == stop
+        return start
+    end
+    return rand(Uniform(start, stop))
 end
 
+function same(first::Individual, second::Individual)
+    return first.fitness != second.fitness && first.chromosome != second.chromosome
+end
 
 function evaluate_row{T <: FloatingPoint}(matrix::Matrix{T}, vector::Vector{T}, row_number)
-    value = 0
-    for i in 1:length(vector)
-        value += matrix[row_number, i] * vector[i]
-    end
-    return value
+    matrix_row = sub(matrix, row_number, :)
+    products = T[vector[i] * matrix_row[i] for i = 1:length(vector)]
+    return sum_kbn(products)
+end
+
+function evaluate_row_skip_position{T <: FloatingPoint}(matrix::Matrix{T}, vector::Vector{T}, row_number, position)
+    matrix_row = sub(matrix, row_number, :)
+    products = T[vector[i] * matrix_row[i] for i = 1:length(vector)]
+    products[position] = 0.0
+    return sum_kbn(products)
+end
+
+function sort_population!{T <: FloatingPoint}(population::Vector{Individual{T}}, minmax::MinMaxType)
+    @debug "sorting population"
+    reverse = (minmax == maximization ? true : false)
+    sort!(population, alg=QuickSort, by=(ind -> ind.fitness), rev=reverse)
 end

@@ -34,7 +34,8 @@ custom_test("GenocopSpec constructor should set passed values and defaults in th
     @test spec.equalities == [.1 .2]
     @test spec.equalities_right == [.3]
     @test spec.inequalities == [.4 .5]
-    @test spec.inequalities_right == [.6]
+    @test spec.inequalities_lower == [-Inf]
+    @test spec.inequalities_upper == [.6]
     @test spec.lower_bounds == [.7, .8]
     @test spec.upper_bounds == [.9, .10]
     @test spec.population_size == ParallelGenocop._default_population_size

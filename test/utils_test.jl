@@ -40,3 +40,20 @@ custom_test("verify_same_size should do nothing when vectors sizes match") do
     vector2 = [3, 6, 8]
     ParallelGenocop.verify_same_size(vector1, vector2)
 end
+
+function get_individual_with_fitness(fitness)
+    ind = Individual([.1, .2])
+    ind.fitness = fitness
+    return ind
+end
+
+custom_test("sort_population! should sort supplied array") do
+    ind1 = get_individual_with_fitness(.9)
+    ind2 = get_individual_with_fitness(.2)
+    ind3 = get_individual_with_fitness(.7)
+    population = [ind1, ind2, ind3]
+
+    ParallelGenocop.sort_population!(population, minimization)
+
+    @test population == [ind2, ind3, ind1]
+end

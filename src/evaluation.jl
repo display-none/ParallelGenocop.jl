@@ -1,5 +1,6 @@
 
 function evaluate_population!{T <: FloatingPoint}(population::Vector{Individual{T}}, evaluation_func::Function)
+    @debug "evaluating population"
     for individual in population
         if individual.fitness == nothing
             evaluate!(individual, evaluation_func)
