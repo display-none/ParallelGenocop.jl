@@ -11,3 +11,8 @@ println("Running tests:")
 for test in tests
   include(test)
 end
+
+@Logging.configure(level=INFO)
+
+println("\n\n\n Running integration test:")
+include("integration.jl")

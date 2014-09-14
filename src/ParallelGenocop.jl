@@ -46,7 +46,7 @@ function genocop{T <: FloatingPoint}(specification::GenocopSpec{T}, evaluation_f
     @info "best individual: $(best_individual.chromosome)"
     feasible = is_feasible(best_individual.chromosome, specification)
     @info "individual feasible: $feasible"
-    nothing
+    return best_individual.chromosome
 end
 
 
