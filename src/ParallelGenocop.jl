@@ -38,7 +38,7 @@ function genocop{T <: FloatingPoint}(specification::GenocopSpec{T}, evaluation_f
     best_individual = optimize!(population, specification, evaluation_function)
 
     @info "best individual: $best_individual"
-    feasible = is_feasible(best_individual, specification)
+    feasible = is_feasible(best_individual.chromosome, specification)
     @info "individual feasible: $feasible"
     nothing
 end

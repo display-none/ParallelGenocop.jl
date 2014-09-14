@@ -52,6 +52,22 @@ function evaluate_row_skip_position{T <: FloatingPoint}(matrix::Matrix{T}, vecto
     return sum_kbn(products)
 end
 
+
+function is_feasible{T <: FloatingPoint}(chromosome::Vector{T}, spec::GenocopSpec{T})
+    ineq = spec.inequalities
+    ineq_lower = spec.inequalities_lower
+    ineq_upper = spec.inequalities_upper
+    for i in 1:size(ineq, 1)
+        value = evaluate_row(ineq, chromosome, i)
+
+        if value > ineq_upper[i] || value < ineq_lower[i]
+            return false
+        end
+    end
+    return true
+end
+
+
 function sort_population!{T <: FloatingPoint}(population::Vector{Individual{T}}, minmax::MinMaxType)
     @debug "sorting population"
     reverse = (minmax == maximization ? true : false)

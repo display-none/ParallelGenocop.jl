@@ -18,6 +18,28 @@ function apply_operator{T <: FloatingPoint}(operator::UniformMutation, chromosom
     return new_chromosome
 end
 
+
+
+# BoundaryMutation
+
+immutable type BoundaryMutation <: Operator
+    arity::Integer
+    BoundaryMutation() = new(1)
+end
+
+const _boundary_mutation = BoundaryMutation()
+
+function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, chromosome::Vector{T}, spec::GenocopSpec{T})
+    @debug "applying boundary mutation on $chromosome"
+    position = rand(1:length(chromosome))
+    lower_limit, upper_limit = find_limits_for_chromosome_mutation(chromosome, position, spec)
+
+    new_chromosome = copy(chromosome)
+    new_chromosome[position] = randbool() ? lower_limit : upper_limit
+    return new_chromosome
+end
+
+
 function find_limits_for_chromosome_mutation{T <: FloatingPoint}(chromosome::Vector{T}, position::Integer, spec::GenocopSpec{T})
     lower_limit::T = spec.lower_bounds[position]        #initialize limits to initial variable bounds
     upper_limit::T = spec.upper_bounds[position]
@@ -58,27 +80,6 @@ end
 
 
 
-# BoundaryMutation
-
-immutable type BoundaryMutation <: Operator
-    arity::Integer
-    BoundaryMutation() = new(1)
-end
-
-const _boundary_mutation = BoundaryMutation()
-
-function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, chromosome::Vector{T}, spec::GenocopSpec{T})
-    @debug "applying boundary mutation on $chromosome"
-    position = rand(1:length(chromosome))
-    lower_limit, upper_limit = find_limits_for_chromosome_mutation(chromosome, position, spec)
-
-    new_chromosome = copy(chromosome)
-    new_chromosome[position] = randbool() ? lower_limit : upper_limit
-    return new_chromosome
-end
-
-
-
 # Arithmetical Crossover - binary operator that combines two chromosomes (c1, c2) to produce
 # a * c1 + (1-a) * c2   and
 # (1-a) * c1 + a * c2
@@ -98,10 +99,7 @@ function apply_operator{T <: FloatingPoint}(operator::ArithmeticalCrossover, fir
     first_new = Array(T, length(first_chromosome))
     second_new = Array(T, length(first_chromosome))
 
-    for i = 1:length(first_chromosome)
-        first_new[i] = first_chromosome[i] * a + second_chromosome[i] * (1-a)
-        second_new[i] = first_chromosome[i] * (1-a) + second_chromosome[i] * a
-    end
+    combine_chromosomes!(first_chromosome, second_chromosome, first_new, second_new, a)
 
     return first_new, second_new
 end
@@ -117,6 +115,50 @@ end
 
 
 
+# Simple Crossover - binary operator that combines two chromosomes similarly to arithmetical crossover,
+# but part of the parent is copied into offspring
+
+immutable type SimpleCrossover <: Operator
+    arity::Integer
+    step::Integer
+    SimpleCrossover() = new(2, _default_simple_crossover_step)
+end
+
+const _simple_crossover = SimpleCrossover()
+
+function apply_operator{T <: FloatingPoint}(operator::SimpleCrossover, first_chromosome::Vector{T},
+                                            second_chromosome::Vector{T}, spec::GenocopSpec{T})
+    @debug "applying simple crossover on $first_chromosome and $second_chromosome"
+
+    first_new = copy(first_chromosome)
+    second_new = copy(second_chromosome)
+    cut_point = rand(1:length(first_chromosome))
+    cross_range::UnitRange
+    if randbool()
+        cross_range = 1:cut_point
+    else
+        cross_range = cut_point+1 : length(first_chromosome)
+    end
+    for i = 1:operator.step
+        a = i / operator.step
+        combine_chromosomes!(sub(first_chromosome, cross_range), sub(second_chromosome, cross_range),
+                                sub(first_new, cross_range), sub(second_new, cross_range), a)
+        if is_feasible(first_new, spec) && is_feasible(second_new, spec)
+            break
+        end
+    end
+    return first_new, second_new
+end
+
+function combine_chromosomes!(first_old::AbstractArray, second_old::AbstractArray,
+                                first_new::AbstractArray, second_new::AbstractArray, a)
+    for i = 1:length(first_old)
+        first_new[i] = first_old[i] * a + second_old[i] * (1-a)
+        second_new[i] = first_old[i] * (1-a) + second_old[i] * a
+    end
+end
+
+
 _dummy = UniformMutation()
 
-const _operators = [_uniform_mutation, _boundary_mutation, _dummy, _arithmetical_crossover]
+const _operators = [UniformMutation(), BoundaryMutation(), _dummy, ArithmeticalCrossover(), SimpleCrossover()]

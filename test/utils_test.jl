@@ -1,6 +1,12 @@
 
-
 custom_suite("utils test")
+
+
+function get_individual_with_fitness(fitness)
+    ind = Individual([.1, .2])
+    ind.fitness = fitness
+    return ind
+end
 
 
 custom_test("verify_dimensions_rows should throw error when no of rows in a matrix does not match vector length") do
@@ -41,12 +47,6 @@ custom_test("verify_same_size should do nothing when vectors sizes match") do
     ParallelGenocop.verify_same_size(vector1, vector2)
 end
 
-function get_individual_with_fitness(fitness)
-    ind = Individual([.1, .2])
-    ind.fitness = fitness
-    return ind
-end
-
 custom_test("sort_population! should sort supplied array") do
     ind1 = get_individual_with_fitness(.9)
     ind2 = get_individual_with_fitness(.2)
@@ -57,3 +57,32 @@ custom_test("sort_population! should sort supplied array") do
 
     @test population == [ind2, ind3, ind1]
 end
+
+
+
+custom_test("is_feasible should return false if any row is infeasible") do
+    infeasible_inequalities_right = Float64[-Inf, -Inf]
+    spec = get_sample_spec(inequalities_right = infeasible_inequalities_right)
+
+
+    @test false == ParallelGenocop.is_feasible(Float64[1.3, 2.3, 1.2, 3.3], spec)
+end
+
+
+custom_test("is_feasible should return false if first row is feasible, but second is infeasible") do
+    mixed_inequalities_right = Float64[Inf, -Inf]
+    spec = get_sample_spec(inequalities_right = mixed_inequalities_right)
+
+
+    @test false == ParallelGenocop.is_feasible(Float64[1.3, 2.3, 1.2, 3.3], spec)
+end
+
+
+custom_test("is_feasible should return true when all rows are feasible") do
+    mixed_inequalities_right = Float64[Inf, Inf]
+    spec = get_sample_spec(inequalities_right = mixed_inequalities_right)
+
+
+    @test true == ParallelGenocop.is_feasible(Float64[1.3, 2.3, 1.2, 3.3], spec)
+end
+

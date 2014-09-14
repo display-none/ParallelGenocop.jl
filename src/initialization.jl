@@ -49,17 +49,17 @@ function get_feasible_individual{T <: FloatingPoint}(spec::GenocopSpec{T})
 
     for i = 1:_population_initialization_tries
 
-        random_individual = get_random_individual_within_bounds(spec)
+        random_chromosome = get_random_chromosome_within_bounds(spec)
 
-        if is_feasible(random_individual, spec)
-            return random_individual
+        if is_feasible(random_chromosome, spec)
+            return Individual(random_chromosome)
         end
     end
 
     return nothing
 end
 
-function get_random_individual_within_bounds{T <: FloatingPoint}(spec::GenocopSpec{T})
+function get_random_chromosome_within_bounds{T <: FloatingPoint}(spec::GenocopSpec{T})
     chromosome = Array(T, spec.no_of_variables)
     for i in 1:spec.no_of_variables
         low = spec.lower_bounds[i]
@@ -67,21 +67,6 @@ function get_random_individual_within_bounds{T <: FloatingPoint}(spec::GenocopSp
         chromosome[i] = get_random_float(low, upp)
     end
 
-    @debug "generated a random individual: $chromosome"
-    return Individual(chromosome)
-end
-
-function is_feasible{T <: FloatingPoint}(individual::Individual{T}, spec::GenocopSpec{T})
-    ineq = spec.inequalities
-    ineq_lower = spec.inequalities_lower
-    ineq_upper = spec.inequalities_upper
-    chromosome = individual.chromosome
-    for i in 1:size(ineq, 1)
-        value = evaluate_row(ineq, chromosome, i)
-
-        if value > ineq_upper[i] || value < ineq_lower[i]
-            return false
-        end
-    end
-    return true
+    @debug "generated a random chromosome: $chromosome"
+    return chromosome
 end
