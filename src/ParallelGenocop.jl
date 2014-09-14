@@ -11,18 +11,24 @@ export
     minimization, maximization,
     multi_point_start_pop, single_point_start_pop,
 
+    #operators
+    Operator,
+    UniformMutation, BoundaryMutation,
+    ArithmeticalCrossover, SimpleCrossover,
+
     #types
     GenocopSpec, Individual
 
 @Logging.configure(level=DEBUG)
 
+include("operator_types.jl")
 include("constants.jl")
 include("types.jl")
 include("utils.jl")
 
 include("evaluation.jl")
 include("initialization.jl")
-include("operators.jl")
+include("operators_impl.jl")
 include("optimization.jl")
 
 
@@ -37,7 +43,7 @@ function genocop{T <: FloatingPoint}(specification::GenocopSpec{T}, evaluation_f
     population::Vector{Individual{T}} = initialize_population(specification)
     best_individual = optimize!(population, specification, evaluation_function)
 
-    @info "best individual: $best_individual"
+    @info "best individual: $(best_individual.chromosome)"
     feasible = is_feasible(best_individual.chromosome, specification)
     @info "individual feasible: $feasible"
     nothing

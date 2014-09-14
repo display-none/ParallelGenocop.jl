@@ -1,13 +1,6 @@
 
 # Uniform Mutation - unary operator uniformly mutating a chromosome
 
-immutable type UniformMutation <: Operator
-    arity::Integer
-    UniformMutation() = new(1)
-end
-
-const _uniform_mutation = UniformMutation()
-
 function apply_operator{T <: FloatingPoint}(operator::UniformMutation, chromosome::Vector{T}, spec::GenocopSpec{T})
     @debug "applying uniform mutation on $chromosome"
     position = rand(1:length(chromosome))
@@ -21,13 +14,6 @@ end
 
 
 # BoundaryMutation
-
-immutable type BoundaryMutation <: Operator
-    arity::Integer
-    BoundaryMutation() = new(1)
-end
-
-const _boundary_mutation = BoundaryMutation()
 
 function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, chromosome::Vector{T}, spec::GenocopSpec{T})
     @debug "applying boundary mutation on $chromosome"
@@ -85,13 +71,6 @@ end
 # (1-a) * c1 + a * c2
 # where a is a random number from range (0, 1)
 
-immutable type ArithmeticalCrossover <: Operator
-    arity::Integer
-    ArithmeticalCrossover() = new(2)
-end
-
-const _arithmetical_crossover = ArithmeticalCrossover()
-
 function apply_operator{T <: FloatingPoint}(operator::ArithmeticalCrossover, first_chromosome::Vector{T},
                                             second_chromosome::Vector{T}, spec::GenocopSpec{T})
     @debug "applying arithmetical crossover on $first_chromosome and $second_chromosome"
@@ -117,14 +96,6 @@ end
 
 # Simple Crossover - binary operator that combines two chromosomes similarly to arithmetical crossover,
 # but part of the parent is copied into offspring
-
-immutable type SimpleCrossover <: Operator
-    arity::Integer
-    step::Integer
-    SimpleCrossover() = new(2, _default_simple_crossover_step)
-end
-
-const _simple_crossover = SimpleCrossover()
 
 function apply_operator{T <: FloatingPoint}(operator::SimpleCrossover, first_chromosome::Vector{T},
                                             second_chromosome::Vector{T}, spec::GenocopSpec{T})
@@ -159,6 +130,3 @@ function combine_chromosomes!(first_old::AbstractArray, second_old::AbstractArra
 end
 
 
-_dummy = UniformMutation()
-
-const _operators = [UniformMutation(), BoundaryMutation(), _dummy, ArithmeticalCrossover(), SimpleCrossover()]

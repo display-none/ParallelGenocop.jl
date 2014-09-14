@@ -15,8 +15,8 @@ function evaluate!{T <: FloatingPoint}(individual::Individual{T}, evaluation_fun
         individual.fitness = ev
     catch ex
         @error "evaluation of individual $chromosome failed"
-        if isa(ex, TypeError)
-            @error "The evaluation function you provided threw a TypeError, check the function signature. (the function should take one Vector{$T} argument)"
+        if isa(ex, MethodError)
+            @error "Julia couldn't find the method to accept one Vector{$T} argument while calling evaluation function. Check what you supplied"
         else
             @error "The evaluation function you provided threw an exception"
         end

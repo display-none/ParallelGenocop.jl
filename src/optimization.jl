@@ -41,10 +41,10 @@ function apply_operators_to_create_new_population!{T <: FloatingPoint}(generatio
     new_population::Vector{Individual{T}} = []
     operator_applications_left = generation.operator_applications_left
     while sum(operator_applications_left) > 0
-        random = rand(1:length(_operators))
+        random = rand(1:length(spec.operators))
 
         if operator_applications_left[random] > 0
-            operator = _operators[random]
+            operator = spec.operators[random]
 
             if operator.arity == 1
                 new_individual = apply_unary_operator(operator, generation, spec)

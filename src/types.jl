@@ -11,6 +11,7 @@ immutable type GenocopSpec{T <: FloatingPoint}
     upper_bounds::Vector{T}
     population_size::Integer
     max_iterations::Integer
+    operators::Vector{Operator}
     operator_frequency::Vector{Integer}
     cumulative_prob_coeff::FloatingPoint
     minmax::MinMaxType
@@ -27,10 +28,13 @@ immutable type GenocopSpec{T <: FloatingPoint}
         upper_bounds::Vector{T},
         population_size::Integer,
         max_iterations::Integer,
-        operator_frequency::Vector{Integer},
+        operator_mapping::Dict{Operator, Integer},
         cumulative_prob_coeff::FloatingPoint,
         minmax::MinMaxType,
         starting_population_type::StartPopType)
+
+        operators = collect(keys(operator_mapping))
+        operator_frequency = Integer[operator_mapping[operator] / operator.arity for operator in operators]
 
         verify_dimensions_rows(equalities, equalities_right, "dimensions of equalities and its right hand side do not match")
         verify_dimensions_rows(inequalities, inequalities_lower, "dimensions of inequalities and its lower limits do not match")
@@ -40,8 +44,8 @@ immutable type GenocopSpec{T <: FloatingPoint}
         verify_same_size(lower_bounds, upper_bounds)
         @assert population_size > 0 "population size must be a positive integer"
         @assert max_iterations > 0 "max iterations must be a positive integer"
-        @assert size(operator_frequency, 1) == 7 "operator frequency must specify exactly 7 integers"
-        @assert sum(operator_frequency) <= population_size "sum of all parents needed for reproduction cannot exceed population size"
+        @assert sum(operator_frequency) > 0 "there must be at least one operator with at least one application"
+        @assert sum(operator_frequency) <= population_size "sum of all operator applications cannot exceed population size"
 
         if sum(operator_frequency) > population_size/2
             @warn "sum of all parents needed for reproduction should not exceed half of population size"
@@ -50,7 +54,7 @@ immutable type GenocopSpec{T <: FloatingPoint}
         no_of_variables = length(lower_bounds)
 
         new(equalities, equalities_right, inequalities, inequalities_lower, inequalities_upper, lower_bounds,
-                upper_bounds, population_size, max_iterations, operator_frequency,
+                upper_bounds, population_size, max_iterations, operators, operator_frequency,
                 cumulative_prob_coeff, minmax, starting_population_type, no_of_variables)
     end
 end
@@ -65,7 +69,7 @@ function GenocopSpec{T <: FloatingPoint}(
         upper_bounds::Vector{T};
         population_size::Integer=_default_population_size,
         max_iterations::Integer=_default_max_iter,
-        operator_frequency::Vector{Integer}=_default_operator_frequency,
+        operator_mapping::Dict{Operator, Integer}=_default_operator_mapping,
         cumulative_prob_coeff::FloatingPoint=_default_cumulative_prob_coeff,
         minmax::MinMaxType=_default_minmax_type,
         starting_population_type::StartPopType=_default_starting_population)
@@ -73,7 +77,7 @@ function GenocopSpec{T <: FloatingPoint}(
         inequalities_lower = T[-Inf for i in 1:length(inequalities_right)]
 
         GenocopSpec{T}(equalities, equalities_right, inequalities, inequalities_lower, inequalities_right, lower_bounds,
-                            upper_bounds, population_size, max_iterations, operator_frequency,
+                            upper_bounds, population_size, max_iterations, operator_mapping,
                             cumulative_prob_coeff, minmax, starting_population_type)
 end
 
@@ -122,9 +126,4 @@ end
 
 Generation{T <: FloatingPoint}(population::Vector{Individual{T}}, operator_applications_left::Vector{Integer}) = Generation{T}(population::Vector{Individual{T}}, operator_applications_left::Vector{Integer})
 
-
-
-# Operator type as a base class for operators
-
-abstract Operator
 

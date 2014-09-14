@@ -52,9 +52,9 @@ eval_func = function(arg::Vector{Float64})
                               2.0*arg[3])*(arg[2] - 2.0*arg[3])*(arg[2] - 2.0*arg[3]) + 10.0*(arg[1])*(arg[1])*(arg[1])*(arg[1])
             end
 
-custom_test("genocop shouldReturnNothing") do
-    genocop(spec, eval_func) == nothing
-end
+#custom_test("genocop shouldReturnNothing") do
+#    genocop(spec, eval_func) == nothing
+#end
 
 
 
