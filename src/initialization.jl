@@ -17,14 +17,7 @@ function initialize_population_single_point{T <: FloatingPoint}(spec::GenocopSpe
         error("no feasible individual found")
     end
 
-    return Individual{T}[deep_copy_individual(individual) for i=1:spec.population_size]
-end
-
-function deep_copy_individual(individual::Individual)
-    chromosome_copy = copy(individual.chromosome)
-    individual_copy = copy(individual)
-    individual_copy.chromosome = chromosome_copy
-    return individual_copy
+    return Individual{T}[deepcopy(individual) for i=1:spec.population_size]
 end
 
 function initialize_population_multipoint{T <: FloatingPoint}(spec::GenocopSpec{T})
