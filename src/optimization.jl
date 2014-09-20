@@ -3,23 +3,25 @@
 function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual{T}}, spec::GenocopSpec{T}, evaluate_func::Function)
     @debug "Beginning optimization"
     best_individual::Individual{T} = initial_population[1]
-    generation = Generation(initial_population, copy(spec.operator_frequency))
+    new_population = initial_population
+    iteration = 1
 
-    for i = 1:(spec.max_iterations-1)
+    while iteration < spec.max_iterations
+        generation = Generation(iteration, new_population, copy(spec.operator_frequency))
+
         population = generation.population
         evaluate_population!(population, evaluate_func)
         sort_population!(population, spec.minmax)
         generation.cumulative_probabilities = cumsum(compute_probabilities!(population))    #can be changed to cumsum_kbn for increased accuracy
-        best_individual = find_best_individual(best_individual, population[1], spec.minmax, i)
+        best_individual = find_best_individual(best_individual, population[1], spec.minmax, iteration)
 
         new_population = apply_operators_to_create_new_population!(generation, spec)
-
-        generation = Generation(new_population, copy(spec.operator_frequency))
+        iteration += 1
     end
 
-    evaluate_population!(generation.population, evaluate_func)
-    sort_population!(generation.population, spec.minmax)
-    best_individual = find_best_individual(best_individual, generation.population[1], spec.minmax, spec.max_iterations)
+    evaluate_population!(new_population, evaluate_func)
+    sort_population!(new_population, spec.minmax)
+    best_individual = find_best_individual(best_individual, new_population[1], spec.minmax, spec.max_iterations)
 
 
     @debug "best individual found with fitness $(best_individual.fitness)"
@@ -69,7 +71,7 @@ end
 function apply_unary_operator{T <: FloatingPoint}(operator::Operator, generation::Generation{T}, spec::GenocopSpec{T})
     individual = select_random_individual(generation.population)
     individual.dead = true
-    new_chromosome = apply_operator(operator, individual.chromosome, spec)
+    new_chromosome = apply_operator(operator, individual.chromosome, spec, generation.number)
     return Individual(new_chromosome)
 end
 

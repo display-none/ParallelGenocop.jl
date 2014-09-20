@@ -112,18 +112,20 @@ end
 # Generation type to represent a generation
 
 type Generation{T <: FloatingPoint}
+    number::Integer
     population::Vector{Individual{T}}
     cumulative_probabilities::Vector{Float64}
     operator_applications_left::Vector{Integer}
 
-    function Generation(population::Vector{Individual{T}}, operator_applications_left::Vector{Integer})
+    function Generation(number::Integer, population::Vector{Individual{T}}, operator_applications_left::Vector{Integer})
         gen = new()
+        gen.number = number
         gen.population = population
         gen.operator_applications_left = operator_applications_left
         return gen
     end
 end
 
-Generation{T <: FloatingPoint}(population::Vector{Individual{T}}, operator_applications_left::Vector{Integer}) = Generation{T}(population::Vector{Individual{T}}, operator_applications_left::Vector{Integer})
+Generation{T <: FloatingPoint}(number::Integer, population::Vector{Individual{T}}, operator_applications_left::Vector{Integer}) = Generation{T}(number, population, operator_applications_left)
 
 

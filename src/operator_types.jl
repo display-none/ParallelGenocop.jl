@@ -14,13 +14,23 @@ immutable type UniformMutation <: Operator
 end
 
 
-# BoundaryMutation
+# Boundary Mutation
 
 immutable type BoundaryMutation <: Operator
     arity::Integer
     BoundaryMutation() = new(1)
 end
 
+
+# Non-Uniform Mutation
+const _default_non_uniform_mutation_parameter = 6
+
+immutable type NonUniformMutation <: Operator
+    arity::Integer
+    degree_of_non_uniformity::Integer
+    NonUniformMutation() = new(1, _default_non_uniform_mutation_parameter)
+    NonUniformMutation(degree) = new(1, degree)
+end
 
 
 # Arithmetical Crossover
@@ -39,4 +49,5 @@ immutable type SimpleCrossover <: Operator
     arity::Integer
     step::Integer
     SimpleCrossover() = new(2, _default_simple_crossover_step)
+    SimpleCrossover(step) = new(2, step)
 end

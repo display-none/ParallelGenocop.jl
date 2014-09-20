@@ -1,7 +1,7 @@
 
 # Uniform Mutation - unary operator uniformly mutating a chromosome
 
-function apply_operator{T <: FloatingPoint}(operator::UniformMutation, chromosome::Vector{T}, spec::GenocopSpec{T})
+function apply_operator{T <: FloatingPoint}(operator::UniformMutation, chromosome::Vector{T}, spec::GenocopSpec{T}, iteration::Integer)
     @debug "applying uniform mutation on $chromosome"
     position = rand(1:length(chromosome))
     lower_limit, upper_limit = find_limits_for_chromosome_mutation(chromosome, position, spec)
@@ -15,7 +15,7 @@ end
 
 # BoundaryMutation
 
-function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, chromosome::Vector{T}, spec::GenocopSpec{T})
+function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, chromosome::Vector{T}, spec::GenocopSpec{T}, iteration::Integer)
     @debug "applying boundary mutation on $chromosome"
     position = rand(1:length(chromosome))
     lower_limit, upper_limit = find_limits_for_chromosome_mutation(chromosome, position, spec)
@@ -23,6 +23,32 @@ function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, chromoso
     new_chromosome = copy(chromosome)
     new_chromosome[position] = randbool() ? lower_limit : upper_limit
     return new_chromosome
+end
+
+
+# Non-Uniform Mutation
+
+function apply_operator{T <: FloatingPoint}(operator::NonUniformMutation, chromosome::Vector{T}, spec::GenocopSpec{T}, iteration::Integer)
+    @debug "applying non-uniform mutation on $chromosome"
+    position = rand(1:length(chromosome))
+    lower_limit, upper_limit = find_limits_for_chromosome_mutation(chromosome, position, spec)
+
+    new_chromosome = copy(chromosome)
+    current_value = chromosome[position]
+    b = operator.degree_of_non_uniformity
+    if randbool()
+        y = current_value - lower_limit
+        new_chromosome[position] = current_value - find_new_non_uniform_value(y, b, iteration, spec.max_iterations)
+    else
+        y = upper_limit - current_value
+        new_chromosome[position] = current_value + find_new_non_uniform_value(y, b, iteration, spec.max_iterations)
+    end
+    return new_chromosome
+end
+
+
+function find_new_non_uniform_value{T <: FloatingPoint}(y::T, b::Integer, iteration::Integer, max_iterations::Integer)
+    return y * rand() * (1 - (iteration / max_iterations) ) ^ b
 end
 
 
