@@ -33,6 +33,16 @@ immutable type NonUniformMutation <: Operator
 end
 
 
+# Whole Non-Uniform Mutation
+
+immutable type WholeNonUniformMutation <: Operator
+    arity::Integer
+    degree_of_non_uniformity::Integer
+    WholeNonUniformMutation() = new(1, _default_non_uniform_mutation_parameter)
+    WholeNonUniformMutation(degree) = new(1, degree)
+end
+
+
 # Arithmetical Crossover
 
 immutable type ArithmeticalCrossover <: Operator

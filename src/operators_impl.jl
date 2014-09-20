@@ -34,21 +34,39 @@ function apply_operator{T <: FloatingPoint}(operator::NonUniformMutation, chromo
     lower_limit, upper_limit = find_limits_for_chromosome_mutation(chromosome, position, spec)
 
     new_chromosome = copy(chromosome)
-    current_value = chromosome[position]
-    b = operator.degree_of_non_uniformity
-    if randbool()
-        y = current_value - lower_limit
-        new_chromosome[position] = current_value - find_new_non_uniform_value(y, b, iteration, spec.max_iterations)
-    else
-        y = upper_limit - current_value
-        new_chromosome[position] = current_value + find_new_non_uniform_value(y, b, iteration, spec.max_iterations)
-    end
+    current_value = new_chromosome[position]
+    factor = (1 - (iteration / spec.max_iterations) ) ^ operator.degree_of_non_uniformity
+    new_chromosome[position] = find_new_non_uniform_value(current_value, lower_limit, upper_limit, factor)
     return new_chromosome
 end
 
 
-function find_new_non_uniform_value{T <: FloatingPoint}(y::T, b::Integer, iteration::Integer, max_iterations::Integer)
-    return y * rand() * (1 - (iteration / max_iterations) ) ^ b
+# Whole Non-Uniform Mutation
+
+function apply_operator{T <: FloatingPoint}(operator::WholeNonUniformMutation, chromosome::Vector{T}, spec::GenocopSpec{T}, iteration::Integer)
+    @debug "applying whole non-uniform mutation on $chromosome"
+    new_chromosome = copy(chromosome)
+
+    factor = (1 - (iteration / spec.max_iterations) ) ^ operator.degree_of_non_uniformity
+    for position in randperm(length(chromosome))
+        # TODO: optimize finding limits so that all limits are found in one call
+        lower_limit, upper_limit = find_limits_for_chromosome_mutation(new_chromosome, position, spec)
+
+        current_value = new_chromosome[position]
+        new_chromosome[position] = find_new_non_uniform_value(current_value, lower_limit, upper_limit, factor)
+    end
+
+    return new_chromosome
+end
+
+function find_new_non_uniform_value{T <: FloatingPoint}(current_value::T, lower_limit::T, upper_limit::T, factor::Float64)
+    if randbool()
+        y = current_value - lower_limit
+        return current_value - y * rand() * factor
+    else
+        y = upper_limit - current_value
+        return current_value + y * rand() * factor
+    end
 end
 
 

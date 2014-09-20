@@ -30,6 +30,7 @@ const _default_max_iter = 500
 const _default_operator_mapping = (Operator=>Integer)[  UniformMutation() => 4,
                                                         BoundaryMutation() => 4,
                                                         NonUniformMutation() => 4,
+                                                        WholeNonUniformMutation() => 4,
                                                         ArithmeticalCrossover() => 4,
                                                         SimpleCrossover() => 4]
 const _default_cumulative_prob_coeff = 0.1
