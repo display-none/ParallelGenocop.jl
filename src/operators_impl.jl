@@ -1,34 +1,37 @@
 
 # Uniform Mutation - unary operator uniformly mutating a chromosome
 
-function apply_operator{T <: FloatingPoint}(operator::UniformMutation, chromosome::Vector{T}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::UniformMutation, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+    chromosome = parents[1]
     @debug "applying uniform mutation on $chromosome"
     position = rand(1:length(chromosome))
     lower_limit, upper_limit = find_limits_for_chromosome_mutation(chromosome, position, spec)
 
     new_chromosome = copy(chromosome)
     new_chromosome[position] = get_random_float(lower_limit, upper_limit)
-    return new_chromosome
+    return Array{T, 1}[new_chromosome]
 end
 
 
 
 # BoundaryMutation
 
-function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, chromosome::Vector{T}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+    chromosome = parents[1]
     @debug "applying boundary mutation on $chromosome"
     position = rand(1:length(chromosome))
     lower_limit, upper_limit = find_limits_for_chromosome_mutation(chromosome, position, spec)
 
     new_chromosome = copy(chromosome)
     new_chromosome[position] = randbool() ? lower_limit : upper_limit
-    return new_chromosome
+    return Array{T, 1}[new_chromosome]
 end
 
 
 # Non-Uniform Mutation
 
-function apply_operator{T <: FloatingPoint}(operator::NonUniformMutation, chromosome::Vector{T}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::NonUniformMutation, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+    chromosome = parents[1]
     @debug "applying non-uniform mutation on $chromosome"
     position = rand(1:length(chromosome))
     lower_limit, upper_limit = find_limits_for_chromosome_mutation(chromosome, position, spec)
@@ -37,26 +40,28 @@ function apply_operator{T <: FloatingPoint}(operator::NonUniformMutation, chromo
     current_value = new_chromosome[position]
     factor = (1 - (iteration / spec.max_iterations) ) ^ operator.degree_of_non_uniformity
     new_chromosome[position] = find_new_non_uniform_value(current_value, lower_limit, upper_limit, factor)
-    return new_chromosome
+    return Array{T, 1}[new_chromosome]
 end
 
 
 # Whole Non-Uniform Mutation
 
-function apply_operator{T <: FloatingPoint}(operator::WholeNonUniformMutation, chromosome::Vector{T}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::WholeNonUniformMutation, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+    chromosome = parents[1]
     @debug "applying whole non-uniform mutation on $chromosome"
     new_chromosome = copy(chromosome)
 
     factor = (1 - (iteration / spec.max_iterations) ) ^ operator.degree_of_non_uniformity
     for position in randperm(length(chromosome))
         # TODO: optimize finding limits so that all limits are found in one call
+        # update: probably not possible since with every position changed limits change
         lower_limit, upper_limit = find_limits_for_chromosome_mutation(new_chromosome, position, spec)
 
         current_value = new_chromosome[position]
         new_chromosome[position] = find_new_non_uniform_value(current_value, lower_limit, upper_limit, factor)
     end
 
-    return new_chromosome
+    return Array{T, 1}[new_chromosome]
 end
 
 function find_new_non_uniform_value{T <: FloatingPoint}(current_value::T, lower_limit::T, upper_limit::T, factor::Float64)
@@ -115,8 +120,9 @@ end
 # (1-a) * c1 + a * c2
 # where a is a random number from range (0, 1)
 
-function apply_operator{T <: FloatingPoint}(operator::ArithmeticalCrossover, first_chromosome::Vector{T},
-                                            second_chromosome::Vector{T}, spec::GenocopSpec{T})
+function apply_operator{T <: FloatingPoint}(operator::ArithmeticalCrossover, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+    first_chromosome = parents[1]
+    second_chromosome = parents[2]
     @debug "applying arithmetical crossover on $first_chromosome and $second_chromosome"
     a = get_random_a()
     first_new = Array(T, length(first_chromosome))
@@ -124,7 +130,7 @@ function apply_operator{T <: FloatingPoint}(operator::ArithmeticalCrossover, fir
 
     combine_chromosomes!(first_chromosome, second_chromosome, first_new, second_new, a)
 
-    return first_new, second_new
+    return Array{T, 1}[first_new, second_new]
 end
 
 function get_random_a()         # zero is not an interesting case, so we avoid it
@@ -141,8 +147,9 @@ end
 # Simple Crossover - binary operator that combines two chromosomes similarly to arithmetical crossover,
 # but part of the parent is copied into offspring
 
-function apply_operator{T <: FloatingPoint}(operator::SimpleCrossover, first_chromosome::Vector{T},
-                                            second_chromosome::Vector{T}, spec::GenocopSpec{T})
+function apply_operator{T <: FloatingPoint}(operator::SimpleCrossover, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+    first_chromosome = parents[1]
+    second_chromosome = parents[2]
     @debug "applying simple crossover on $first_chromosome and $second_chromosome"
 
     first_new = copy(first_chromosome)
@@ -162,7 +169,7 @@ function apply_operator{T <: FloatingPoint}(operator::SimpleCrossover, first_chr
             break
         end
     end
-    return first_new, second_new
+    return Array{T, 1}[first_new, second_new]
 end
 
 function combine_chromosomes!(first_old::AbstractArray, second_old::AbstractArray,
@@ -174,3 +181,11 @@ function combine_chromosomes!(first_old::AbstractArray, second_old::AbstractArra
 end
 
 
+# Heuristic Crossover - returns
+
+function apply_operator{T <: FloatingPoint}(operator::HeuristicCrossover, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+    first_chromosome = parents[1]
+    second_chromosome = parents[2]
+    @debug "applying heuristic crossover on $first_chromosome and $second_chromosome"
+
+end

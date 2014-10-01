@@ -29,6 +29,7 @@ include("utils.jl")
 include("evaluation.jl")
 include("initialization.jl")
 include("operators_impl.jl")
+include("selection.jl")
 include("optimization.jl")
 
 

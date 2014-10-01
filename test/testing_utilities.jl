@@ -41,3 +41,23 @@ function get_spec_with_all_individuals_infeasible(starting_population_type = sin
 
     get_sample_spec(starting_population_type, inequalities_right = inequalities_right)
 end
+
+
+
+function get_individual_with_fitness(fitness)
+    ind = Individual([.1, .2])
+    ind.fitness = fitness
+    return ind
+end
+
+function get_dead_individual()
+    ind = Individual([.1, .2])
+    ind.dead = true
+    return ind
+end
+
+function get_generation(population, cum_prob)
+    gen = ParallelGenocop.Generation(1, population, Integer[4])
+    gen.cumulative_probabilities = cum_prob
+    return gen
+end
