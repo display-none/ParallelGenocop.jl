@@ -39,10 +39,10 @@ include("optimization.jl")
 #evaluation_function must be a function accepting one argument: a Vector{T}
 
 # TODO: maybe it's possible to accept Numbers instead of FloatingPoints
-function genocop{T <: FloatingPoint}(specification::GenocopSpec{T}, evaluation_function::Function)
+function genocop{T <: FloatingPoint}(specification::GenocopSpec{T})
     @debug "genocop starting"
     population::Vector{Individual{T}} = initialize_population(specification)
-    best_individual = optimize!(population, specification, evaluation_function)
+    best_individual = optimize!(population, specification)
 
     @info "best individual: $(best_individual.chromosome)"
     feasible = is_feasible(best_individual.chromosome, specification)

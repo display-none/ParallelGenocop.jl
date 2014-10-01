@@ -5,22 +5,22 @@ custom_suite("types test")
 
 
 custom_test("GenocopSpec constructor should assert population size is positive") do
-    @test_throws ErrorException ParallelGenocop.GenocopSpec([.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2];population_size=-4)
+    @test_throws ErrorException ParallelGenocop.GenocopSpec((x->x), [.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2];population_size=-4)
 end
 
 custom_test("GenocopSpec constructor should assert max iterations is positive") do
-    @test_throws ErrorException ParallelGenocop.GenocopSpec([.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2];max_iterations=-4)
+    @test_throws ErrorException ParallelGenocop.GenocopSpec((x->x), [.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2];max_iterations=-4)
 end
 
 
 custom_test("GenocopSpec constructor should throw exception when sum of applications exceeds population size") do
-    @test_throws ErrorException ParallelGenocop.GenocopSpec([.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2]
+    @test_throws ErrorException ParallelGenocop.GenocopSpec((x->x), [.1 .2], [.1], [.1 .2], [.1], [.1, .2], [.1, .2]
                                                                 ;operator_mapping=(Operator=>Integer)[UniformMutation() => 7],
                                                                 population_size=4)
 end
 
 custom_test("GenocopSpec constructor should set passed values and defaults in the object") do
-    spec = ParallelGenocop.GenocopSpec([.1 .2], [.3], [.4 .5], [.6], [.7, .8], [.9, .10])
+    spec = ParallelGenocop.GenocopSpec((x->x), [.1 .2], [.3], [.4 .5], [.6], [.7, .8], [.9, .10])
 
     @test spec.equalities == [.1 .2]
     @test spec.equalities_right == [.3]
@@ -40,7 +40,7 @@ custom_test("GenocopSpec constructor should set passed optional values in the ob
     operator1 = UniformMutation()
     operator2 = BoundaryMutation()
 
-    spec = ParallelGenocop.GenocopSpec([.1 .2], [.3], [.4 .5], [.6], [.7, .8], [.9, .10];
+    spec = ParallelGenocop.GenocopSpec((x->x), [.1 .2], [.3], [.4 .5], [.6], [.7, .8], [.9, .10];
                                             population_size = 69,
                                             max_iterations = 666,
                                             operator_mapping=(Operator=>Integer)[operator1 => 7,

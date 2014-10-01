@@ -1,12 +1,12 @@
 
 
-function select_parents{T <: FloatingPoint}(operator::UniformSelectionOperator, generation::Generation{T})
+function select_parents{T <: FloatingPoint}(operator::UniformSelectionUnaryOperator, generation::Generation{T})
     individual = select_random_individual(generation.population)
     individual.dead = true
     return Array{T, 1}[individual.chromosome]
 end
 
-function select_parents{T <: FloatingPoint}(operator::FitnessBasedSelectionOperator, generation::Generation{T})
+function select_parents{T <: FloatingPoint}(operator::FitnessBasedSelectionBinaryOperator, generation::Generation{T})
     first_parent = select_parent(generation)
     second_parent = select_parent(generation)
     kill_somebody(generation)
@@ -18,6 +18,9 @@ function select_parents{T <: FloatingPoint}(operator::HeuristicCrossover, genera
     first_parent = select_parent(generation)
     second_parent = select_parent(generation)
     kill_somebody(generation)
+    if first_parent.fitness > second_parent.fitness
+        first_parent, second_parent = second_parent, first_parent
+    end
     return Array{T, 1}[first_parent.chromosome, second_parent.chromosome]
 end
 

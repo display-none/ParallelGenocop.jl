@@ -2,6 +2,7 @@
 # GenocopSpec for specification of the problem and parameters
 
 immutable type GenocopSpec{T <: FloatingPoint}
+    evaluation_function::Function
     equalities::Matrix{T}
     equalities_right::Vector{T}
     inequalities::Matrix{T}
@@ -19,7 +20,9 @@ immutable type GenocopSpec{T <: FloatingPoint}
 
     no_of_variables::Int
 
-    function GenocopSpec{T}(equalities::Matrix{T},
+    function GenocopSpec{T}(
+        evaluation_function::Function,
+        equalities::Matrix{T},
         equalities_right::Vector{T},
         inequalities::Matrix{T},
         inequalities_lower::Vector{T},
@@ -53,7 +56,7 @@ immutable type GenocopSpec{T <: FloatingPoint}
 
         no_of_variables = length(lower_bounds)
 
-        new(equalities, equalities_right, inequalities, inequalities_lower, inequalities_upper, lower_bounds,
+        new(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_upper, lower_bounds,
                 upper_bounds, population_size, max_iterations, operators, operator_frequency,
                 cumulative_prob_coeff, minmax, starting_population_type, no_of_variables)
     end
@@ -61,6 +64,7 @@ end
 
 
 function GenocopSpec{T <: FloatingPoint}(
+        evaluation_function::Function,
         equalities::Matrix{T},
         equalities_right::Vector{T},
         inequalities::Matrix{T},
@@ -76,7 +80,7 @@ function GenocopSpec{T <: FloatingPoint}(
 
         inequalities_lower = T[-Inf for i in 1:length(inequalities_right)]
 
-        GenocopSpec{T}(equalities, equalities_right, inequalities, inequalities_lower, inequalities_right, lower_bounds,
+        GenocopSpec{T}(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_right, lower_bounds,
                             upper_bounds, population_size, max_iterations, operator_mapping,
                             cumulative_prob_coeff, minmax, starting_population_type)
 end

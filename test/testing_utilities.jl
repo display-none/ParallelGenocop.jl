@@ -25,7 +25,7 @@ function get_sample_spec(starting_population_type = single_point_start_pop;
                 lower_bounds = Float64[1.0, 0.0, -2.1, 0.0],
                 upper_bounds = Float64[8.0, 8.0, 3.1, 4.4])
 
-    GenocopSpec(equalities, equalities_right, inequalities, inequalities_right,
+    GenocopSpec(( x -> x), equalities, equalities_right, inequalities, inequalities_right,
                     lower_bounds, upper_bounds; starting_population_type = starting_population_type)
 end
 
@@ -41,7 +41,6 @@ function get_spec_with_all_individuals_infeasible(starting_population_type = sin
 
     get_sample_spec(starting_population_type, inequalities_right = inequalities_right)
 end
-
 
 
 function get_individual_with_fitness(fitness)

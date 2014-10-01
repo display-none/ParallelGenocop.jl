@@ -67,6 +67,18 @@ function is_feasible{T <: FloatingPoint}(chromosome::Vector{T}, spec::GenocopSpe
     return true
 end
 
+function is_within_bounds{T <: FloatingPoint}(chromosome::Vector{T}, spec::GenocopSpec{T})
+    upper = spec.upper_bounds
+    lower = spec.lower_bounds
+    for i in 1:length(chromosome)
+        value = chromosome[i]
+        if value < lower[i] || value > upper[i]
+            return false
+        end
+    end
+    return true
+end
+
 
 function sort_population!{T <: FloatingPoint}(population::Vector{Individual{T}}, minmax::MinMaxType)
     @debug "sorting population"

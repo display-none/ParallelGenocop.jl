@@ -32,7 +32,8 @@ const _default_operator_mapping = (Operator=>Integer)[  UniformMutation() => 4,
                                                         NonUniformMutation() => 4,
                                                         WholeNonUniformMutation() => 4,
                                                         ArithmeticalCrossover() => 4,
-                                                        SimpleCrossover() => 4]
+                                                        SimpleCrossover() => 4,
+                                                        HeuristicCrossover() => 4]
 const _default_cumulative_prob_coeff = 0.1
 const _default_minmax_type = minimization
 const _default_starting_population = multi_point_start_pop

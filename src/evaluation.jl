@@ -10,9 +10,13 @@ end
 
 function evaluate!{T <: FloatingPoint}(individual::Individual{T}, evaluation_func::Function)
     chromosome = individual.chromosome
+    ev::T = call_evaluation_function(chromosome, evaluation_func)
+    individual.fitness = ev
+end
+
+function call_evaluation_function{T <: FloatingPoint}(chromosome::Vector{T}, evaluation_func::Function)
     try
-        ev::T = evaluation_func(chromosome)
-        individual.fitness = ev
+        return evaluation_func(chromosome)
     catch ex
         @error "evaluation of individual $chromosome failed"
         if isa(ex, MethodError)

@@ -184,8 +184,27 @@ end
 # Heuristic Crossover - returns
 
 function apply_operator{T <: FloatingPoint}(operator::HeuristicCrossover, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
-    first_chromosome = parents[1]
-    second_chromosome = parents[2]
-    @debug "applying heuristic crossover on $first_chromosome and $second_chromosome"
+    worse_chromosome = parents[1]
+    better_chromosome = parents[2]
+    @debug "applying heuristic crossover on $worse_chromosome and $better_chromosome"
 
+    a = get_random_a()
+    for i = 1:operator.tries
+        new_chromosome = combine_better_worse_chromosomes(better_chromosome, worse_chromosome, a)
+        if is_within_bounds(new_chromosome, spec) && is_feasible(new_chromosome, spec) && false
+            @info "duuuupa:  $new_chromosome"
+            return Array{T, 1}[new_chromosome]
+        end
+    end
+
+    return Array{T, 1}[better_chromosome]
 end
+
+function combine_better_worse_chromosomes{T <: FloatingPoint}(better_chromosome::Vector{T}, worse_chromosome::Vector{T}, a)
+    new_chromosome = Array(T, length(better_chromosome))
+    for i = 1:length(better_chromosome)
+        new_chromosome[i] = a * (better_chromosome[i] - worse_chromosome[i]) + better_chromosome[i]
+    end
+    return new_chromosome
+end
+

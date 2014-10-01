@@ -86,3 +86,26 @@ custom_test("is_feasible should return true when all rows are feasible") do
     @test true == ParallelGenocop.is_feasible(Float64[1.3, 2.3, 1.2, 3.3], spec)
 end
 
+
+
+custom_test("is_within_bounds should return false when at least one position is out of lower bounds") do
+    spec = get_sample_spec(upper_bounds=Float64[4.0, 4.0, 4.0, 4.0], lower_bounds=Float64[0.0, 0.0, 0.0, 0.0])
+
+
+    @test false == ParallelGenocop.is_within_bounds(Float64[1.3, -0.3, 1.2, 3.3], spec)
+end
+
+custom_test("is_within_bounds should return false when at least one position is out of upper bounds") do
+    spec = get_sample_spec(upper_bounds=Float64[4.0, 4.0, 4.0, 4.0], lower_bounds=Float64[0.0, 0.0, 0.0, 0.0])
+
+
+    @test false == ParallelGenocop.is_within_bounds(Float64[1.3, 2.3, 4.2, 3.3], spec)
+end
+
+custom_test("is_within_bounds should return true when chromosome is within bounds") do
+    spec = get_sample_spec(upper_bounds=Float64[4.0, 4.0, 4.0, 4.0], lower_bounds=Float64[0.0, 0.0, 0.0, 0.0])
+
+
+    @test true == ParallelGenocop.is_within_bounds(Float64[1.3, 2.3, 1.2, 3.3], spec)
+end
+

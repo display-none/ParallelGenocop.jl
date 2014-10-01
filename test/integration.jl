@@ -19,17 +19,19 @@ inequalities_right = Float64[1.0, -1.0, 34.8, 29.1, -4.1]
 lower_bounds = Float64[0.0, 0.0, 0.0]
 upper_bounds = Float64[4.0, 4.0, 4.0]
 
-spec = GenocopSpec(equalities, equalities_right, inequalities, inequalities_right, lower_bounds,
-upper_bounds; starting_population_type=multi_point_start_pop, minmax = maximization)
-
 eval_func = function(arg::Vector{Float64})
                 return (arg[1] + 10.0*arg[2])*(arg[1] + 10.0*arg[2]) +
                               5.0*(arg[3])*(arg[3]) + (arg[2] - 2.0*arg[3])*(arg[2] -
                               2.0*arg[3])*(arg[2] - 2.0*arg[3])*(arg[2] - 2.0*arg[3]) + 10.0*(arg[1])*(arg[1])*(arg[1])*(arg[1])
             end
 
+
+spec = GenocopSpec(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds,
+upper_bounds; starting_population_type=multi_point_start_pop, minmax = maximization)
+
+
 custom_test("genocop integration test") do
-    genocop(spec, eval_func)
+    genocop(spec)
 end
 
 

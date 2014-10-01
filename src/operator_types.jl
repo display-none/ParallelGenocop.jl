@@ -6,14 +6,14 @@ abstract Operator
 
 
 # Operators divided by selection strategy
-abstract UniformSelectionOperator <: Operator
-abstract FitnessBasedSelectionOperator <: Operator
+abstract UniformSelectionUnaryOperator <: Operator
+abstract FitnessBasedSelectionBinaryOperator <: Operator
 
 
 
 # Uniform Mutation
 
-immutable type UniformMutation <: UniformSelectionOperator
+immutable type UniformMutation <: UniformSelectionUnaryOperator
     arity::Integer
     UniformMutation() = new(1)
 end
@@ -21,7 +21,7 @@ end
 
 # Boundary Mutation
 
-immutable type BoundaryMutation <: UniformSelectionOperator
+immutable type BoundaryMutation <: UniformSelectionUnaryOperator
     arity::Integer
     BoundaryMutation() = new(1)
 end
@@ -30,7 +30,7 @@ end
 # Non-Uniform Mutation
 const _default_non_uniform_mutation_parameter = 6
 
-immutable type NonUniformMutation <: UniformSelectionOperator
+immutable type NonUniformMutation <: UniformSelectionUnaryOperator
     arity::Integer
     degree_of_non_uniformity::Integer
     NonUniformMutation() = new(1, _default_non_uniform_mutation_parameter)
@@ -40,7 +40,7 @@ end
 
 # Whole Non-Uniform Mutation
 
-immutable type WholeNonUniformMutation <: UniformSelectionOperator
+immutable type WholeNonUniformMutation <: UniformSelectionUnaryOperator
     arity::Integer
     degree_of_non_uniformity::Integer
     WholeNonUniformMutation() = new(1, _default_non_uniform_mutation_parameter)
@@ -50,7 +50,7 @@ end
 
 # Arithmetical Crossover
 
-immutable type ArithmeticalCrossover <: FitnessBasedSelectionOperator
+immutable type ArithmeticalCrossover <: FitnessBasedSelectionBinaryOperator
     arity::Integer
     ArithmeticalCrossover() = new(2)
 end
@@ -60,7 +60,7 @@ end
 
 const _default_simple_crossover_step = 10
 
-immutable type SimpleCrossover <: FitnessBasedSelectionOperator
+immutable type SimpleCrossover <: FitnessBasedSelectionBinaryOperator
     arity::Integer
     step::Integer
     SimpleCrossover() = new(2, _default_simple_crossover_step)

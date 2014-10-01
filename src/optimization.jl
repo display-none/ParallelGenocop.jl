@@ -1,6 +1,6 @@
 
 
-function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual{T}}, spec::GenocopSpec{T}, evaluate_func::Function)
+function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual{T}}, spec::GenocopSpec{T})
     @debug "Beginning optimization"
     best_individual::Individual{T} = initial_population[1]
     new_population = initial_population
@@ -10,7 +10,7 @@ function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual{T}}
         generation = Generation(iteration, new_population, copy(spec.operator_frequency))
 
         population = generation.population
-        evaluate_population!(population, evaluate_func)
+        evaluate_population!(population, spec.evaluation_function)
         sort_population!(population, spec.minmax)
         generation.cumulative_probabilities = cumsum(compute_probabilities!(population))    #can be changed to cumsum_kbn for increased accuracy
         best_individual = find_best_individual(best_individual, population[1], spec.minmax, iteration)
@@ -19,7 +19,7 @@ function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual{T}}
         iteration += 1
     end
 
-    evaluate_population!(new_population, evaluate_func)
+    evaluate_population!(new_population, spec.evaluation_function)
     sort_population!(new_population, spec.minmax)
     best_individual = find_best_individual(best_individual, new_population[1], spec.minmax, spec.max_iterations)
 
