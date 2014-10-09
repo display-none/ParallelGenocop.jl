@@ -62,7 +62,7 @@ end
 
 custom_test("is_feasible should return false if any row is infeasible") do
     infeasible_inequalities_right = Float64[-Inf, -Inf]
-    spec = get_sample_spec(inequalities_right = infeasible_inequalities_right)
+    spec = get_sample_spec(inequalities_upper = infeasible_inequalities_right)
 
 
     @test false == ParallelGenocop.is_feasible(Float64[1.3, 2.3, 1.2, 3.3], spec)
@@ -71,7 +71,7 @@ end
 
 custom_test("is_feasible should return false if first row is feasible, but second is infeasible") do
     mixed_inequalities_right = Float64[Inf, -Inf]
-    spec = get_sample_spec(inequalities_right = mixed_inequalities_right)
+    spec = get_sample_spec(inequalities_upper = mixed_inequalities_right)
 
 
     @test false == ParallelGenocop.is_feasible(Float64[1.3, 2.3, 1.2, 3.3], spec)
@@ -80,7 +80,7 @@ end
 
 custom_test("is_feasible should return true when all rows are feasible") do
     mixed_inequalities_right = Float64[Inf, Inf]
-    spec = get_sample_spec(inequalities_right = mixed_inequalities_right)
+    spec = get_sample_spec(inequalities_upper = mixed_inequalities_right)
 
 
     @test true == ParallelGenocop.is_feasible(Float64[1.3, 2.3, 1.2, 3.3], spec)

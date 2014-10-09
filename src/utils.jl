@@ -53,7 +53,7 @@ function evaluate_row_skip_position{T <: FloatingPoint}(matrix::Matrix{T}, vecto
 end
 
 
-function is_feasible{T <: FloatingPoint}(chromosome::Vector{T}, spec::GenocopSpec{T})
+function is_feasible{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSpec{T})
     ineq = spec.inequalities
     ineq_lower = spec.inequalities_lower
     ineq_upper = spec.inequalities_upper
@@ -67,7 +67,7 @@ function is_feasible{T <: FloatingPoint}(chromosome::Vector{T}, spec::GenocopSpe
     return true
 end
 
-function is_within_bounds{T <: FloatingPoint}(chromosome::Vector{T}, spec::GenocopSpec{T})
+function is_within_bounds{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSpec{T})
     upper = spec.upper_bounds
     lower = spec.lower_bounds
     for i in 1:length(chromosome)

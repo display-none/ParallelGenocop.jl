@@ -1,7 +1,7 @@
 
 # Uniform Mutation - unary operator uniformly mutating a chromosome
 
-function apply_operator{T <: FloatingPoint}(operator::UniformMutation, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::UniformMutation, parents::Vector{Vector{T}}, spec::InternalSpec{T}, iteration::Integer)
     chromosome = parents[1]
     @debug "applying uniform mutation on $chromosome"
     position = rand(1:length(chromosome))
@@ -16,7 +16,7 @@ end
 
 # BoundaryMutation
 
-function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::BoundaryMutation, parents::Vector{Vector{T}}, spec::InternalSpec{T}, iteration::Integer)
     chromosome = parents[1]
     @debug "applying boundary mutation on $chromosome"
     position = rand(1:length(chromosome))
@@ -30,7 +30,7 @@ end
 
 # Non-Uniform Mutation
 
-function apply_operator{T <: FloatingPoint}(operator::NonUniformMutation, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::NonUniformMutation, parents::Vector{Vector{T}}, spec::InternalSpec{T}, iteration::Integer)
     chromosome = parents[1]
     @debug "applying non-uniform mutation on $chromosome"
     position = rand(1:length(chromosome))
@@ -46,7 +46,7 @@ end
 
 # Whole Non-Uniform Mutation
 
-function apply_operator{T <: FloatingPoint}(operator::WholeNonUniformMutation, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::WholeNonUniformMutation, parents::Vector{Vector{T}}, spec::InternalSpec{T}, iteration::Integer)
     chromosome = parents[1]
     @debug "applying whole non-uniform mutation on $chromosome"
     new_chromosome = copy(chromosome)
@@ -75,7 +75,7 @@ function find_new_non_uniform_value{T <: FloatingPoint}(current_value::T, lower_
 end
 
 
-function find_limits_for_chromosome_mutation{T <: FloatingPoint}(chromosome::Vector{T}, position::Integer, spec::GenocopSpec{T})
+function find_limits_for_chromosome_mutation{T <: FloatingPoint}(chromosome::Vector{T}, position::Integer, spec::InternalSpec{T})
     lower_limit::T = spec.lower_bounds[position]        #initialize limits to initial variable bounds
     upper_limit::T = spec.upper_bounds[position]
 
@@ -120,7 +120,7 @@ end
 # (1-a) * c1 + a * c2
 # where a is a random number from range (0, 1)
 
-function apply_operator{T <: FloatingPoint}(operator::ArithmeticalCrossover, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::ArithmeticalCrossover, parents::Vector{Vector{T}}, spec::InternalSpec{T}, iteration::Integer)
     first_chromosome = parents[1]
     second_chromosome = parents[2]
     @debug "applying arithmetical crossover on $first_chromosome and $second_chromosome"
@@ -147,7 +147,7 @@ end
 # Simple Crossover - binary operator that combines two chromosomes similarly to arithmetical crossover,
 # but part of the parent is copied into offspring
 
-function apply_operator{T <: FloatingPoint}(operator::SimpleCrossover, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::SimpleCrossover, parents::Vector{Vector{T}}, spec::InternalSpec{T}, iteration::Integer)
     first_chromosome = parents[1]
     second_chromosome = parents[2]
     @debug "applying simple crossover on $first_chromosome and $second_chromosome"
@@ -183,7 +183,7 @@ end
 
 # Heuristic Crossover - returns
 
-function apply_operator{T <: FloatingPoint}(operator::HeuristicCrossover, parents::Vector{Vector{T}}, spec::GenocopSpec{T}, iteration::Integer)
+function apply_operator{T <: FloatingPoint}(operator::HeuristicCrossover, parents::Vector{Vector{T}}, spec::InternalSpec{T}, iteration::Integer)
     worse_chromosome = parents[1]
     better_chromosome = parents[2]
     @debug "applying heuristic crossover on $worse_chromosome and $better_chromosome"

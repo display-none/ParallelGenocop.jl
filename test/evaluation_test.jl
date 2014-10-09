@@ -14,7 +14,7 @@ custom_test("evaluate! should call evaluation function with appropriate argument
     end
 
     #when
-    ParallelGenocop.evaluate!(Individual(chromosome), eval_func)
+    ParallelGenocop.evaluate!(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
 
     #then
     @test called == true
@@ -31,7 +31,7 @@ custom_test("evaluate! should call set the value returned by evaluation function
     end
 
     #when
-    ParallelGenocop.evaluate!(individual, eval_func)
+    ParallelGenocop.evaluate!(individual, get_sample_spec(evaluation_func = eval_func))
 
     #then
     @test individual.fitness == fitness
@@ -46,7 +46,7 @@ custom_test("evaluate! should rethrow MethodError when evaluation function suppl
     end
 
     #when & then
-    @test_throws MethodError ParallelGenocop.evaluate!(Individual(chromosome), eval_func)
+    @test_throws MethodError ParallelGenocop.evaluate!(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
 end
 
 custom_test("evaluate! should rethrow an exception thrown by the evaluation function") do
@@ -57,7 +57,7 @@ custom_test("evaluate! should rethrow an exception thrown by the evaluation func
     end
 
     #when & then
-    @test_throws InexactError ParallelGenocop.evaluate!(Individual(chromosome), eval_func)
+    @test_throws InexactError ParallelGenocop.evaluate!(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
 end
 
 
@@ -78,7 +78,7 @@ custom_test("evaluate_population! should evaluate only individuals not already e
     end
 
     #when
-    ParallelGenocop.evaluate_population!([individual1, individual2, individual3], eval_func)
+    ParallelGenocop.evaluate_population!([individual1, individual2, individual3], get_sample_spec(evaluation_func = eval_func))
 
     #then
     @test called1 == true

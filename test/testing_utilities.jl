@@ -15,31 +15,34 @@ end
 
 
 function get_sample_spec(starting_population_type = single_point_start_pop;
-                equalities = Float64[2.0 1.0 0.0 -3.5],
-                equalities_right = Float64[1.0],
 
                 inequalities = Float64[0.0 1.0 1.0 0.0;
                                        1.0 -2.0 0.0 1.0],
-                inequalities_right = Float64[3.0, 0.0],
+                inequalities_upper = Float64[3.0, 0.0],
 
                 lower_bounds = Float64[1.0, 0.0, -2.1, 0.0],
-                upper_bounds = Float64[8.0, 8.0, 3.1, 4.4])
+                upper_bounds = Float64[8.0, 8.0, 3.1, 4.4],
 
-    GenocopSpec(( x -> x), equalities, equalities_right, inequalities, inequalities_right,
-                    lower_bounds, upper_bounds; starting_population_type = starting_population_type)
+                evaluation_func = ( x -> x ))
+
+                inequalities_lower = Float64[-Inf, -Inf]
+
+    ParallelGenocop.InternalSpec(evaluation_func, Int[], inequalities, inequalities_lower, inequalities_upper,
+                    lower_bounds, upper_bounds, 70, 500, ParallelGenocop._default_operator_mapping, 0.1,
+                    maximization, starting_population_type, length(lower_bounds), Float64[], Float64[1.0 2.0; 2.0 3.0])
 end
 
 
 function get_spec_with_all_individuals_feasible(starting_population_type = single_point_start_pop)
-    inequalities_right = Float64[30.0, 30.0]        #all individuals feasible
+    inequalities_upper = Float64[30.0, 30.0]        #all individuals feasible
 
-    get_sample_spec(starting_population_type, inequalities_right = inequalities_right)
+    get_sample_spec(starting_population_type, inequalities_upper = inequalities_upper)
 end
 
 function get_spec_with_all_individuals_infeasible(starting_population_type = single_point_start_pop)
-    inequalities_right = Float64[-30.0, 0.0]        #impossible to find feasible individual
+    inequalities_upper = Float64[-30.0, 0.0]        #impossible to find feasible individual
 
-    get_sample_spec(starting_population_type, inequalities_right = inequalities_right)
+    get_sample_spec(starting_population_type, inequalities_upper = inequalities_upper)
 end
 
 
@@ -56,7 +59,7 @@ function get_dead_individual()
 end
 
 function get_generation(population, cum_prob)
-    gen = ParallelGenocop.Generation(1, population, Integer[4])
+    gen = ParallelGenocop.Generation(1, population, Int16[4])
     gen.cumulative_probabilities = cum_prob
     return gen
 end

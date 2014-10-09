@@ -1,5 +1,5 @@
 
-function initialize_population{T <: FloatingPoint}(spec::GenocopSpec{T})
+function initialize_population{T <: FloatingPoint}(spec::InternalSpec{T})
     if spec.starting_population_type == single_point_start_pop
         return initialize_population_single_point(spec)
     else
@@ -7,7 +7,7 @@ function initialize_population{T <: FloatingPoint}(spec::GenocopSpec{T})
     end
 end
 
-function initialize_population_single_point{T <: FloatingPoint}(spec::GenocopSpec{T})
+function initialize_population_single_point{T <: FloatingPoint}(spec::InternalSpec{T})
     @debug "beginning to initialize single point population"
 
     individual = get_feasible_individual(spec)
@@ -20,7 +20,7 @@ function initialize_population_single_point{T <: FloatingPoint}(spec::GenocopSpe
     return Individual{T}[deepcopy(individual) for i=1:spec.population_size]
 end
 
-function initialize_population_multipoint{T <: FloatingPoint}(spec::GenocopSpec{T})
+function initialize_population_multipoint{T <: FloatingPoint}(spec::InternalSpec{T})
     @debug "beginning to initialize multi point population"
 
     population = Array(Individual{T}, spec.population_size)
@@ -38,7 +38,7 @@ function initialize_population_multipoint{T <: FloatingPoint}(spec::GenocopSpec{
     return population
 end
 
-function get_feasible_individual{T <: FloatingPoint}(spec::GenocopSpec{T})
+function get_feasible_individual{T <: FloatingPoint}(spec::InternalSpec{T})
 
     for i = 1:_population_initialization_tries
 
@@ -52,7 +52,7 @@ function get_feasible_individual{T <: FloatingPoint}(spec::GenocopSpec{T})
     return nothing
 end
 
-function get_random_chromosome_within_bounds{T <: FloatingPoint}(spec::GenocopSpec{T})
+function get_random_chromosome_within_bounds{T <: FloatingPoint}(spec::InternalSpec{T})
     chromosome = Array(T, spec.no_of_variables)
     for i in 1:spec.no_of_variables
         low = spec.lower_bounds[i]

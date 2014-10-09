@@ -1,7 +1,7 @@
 
-# GenocopSpec for specification of the problem and parameters
+# GenocopSpecification for specification of the problem and parameters
 
-immutable type GenocopSpec{T <: FloatingPoint}
+immutable type GenocopSpecification{T <: FloatingPoint}
     evaluation_function::Function
     equalities::Matrix{T}
     equalities_right::Vector{T}
@@ -12,15 +12,12 @@ immutable type GenocopSpec{T <: FloatingPoint}
     upper_bounds::Vector{T}
     population_size::Integer
     max_iterations::Integer
-    operators::Vector{Operator}
-    operator_frequency::Vector{Integer}
+    operator_mapping::Dict{Operator, Integer}
     cumulative_prob_coeff::FloatingPoint
     minmax::MinMaxType
     starting_population_type::StartPopType
 
-    no_of_variables::Int
-
-    function GenocopSpec{T}(
+    function GenocopSpecification{T}(
         evaluation_function::Function,
         equalities::Matrix{T},
         equalities_right::Vector{T},
@@ -54,16 +51,34 @@ immutable type GenocopSpec{T <: FloatingPoint}
             @warn "sum of all parents needed for reproduction should not exceed half of population size"
         end
 
-        no_of_variables = length(lower_bounds)
-
         new(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_upper, lower_bounds,
-                upper_bounds, population_size, max_iterations, operators, operator_frequency,
-                cumulative_prob_coeff, minmax, starting_population_type, no_of_variables)
+                upper_bounds, population_size, max_iterations, operator_mapping,
+                cumulative_prob_coeff, minmax, starting_population_type)
     end
 end
 
+function GenocopSpecification{T <: FloatingPoint}(
+        evaluation_function::Function,
+        equalities::Matrix{T},
+        equalities_right::Vector{T},
+        inequalities::Matrix{T},
+        inequalities_lower::Vector{T},
+        inequalities_upper::Vector{T},
+        lower_bounds::Vector{T},
+        upper_bounds::Vector{T};
+        population_size::Integer=_default_population_size,
+        max_iterations::Integer=_default_max_iter,
+        operator_mapping::Dict{Operator, Integer}=_default_operator_mapping,
+        cumulative_prob_coeff::FloatingPoint=_default_cumulative_prob_coeff,
+        minmax::MinMaxType=_default_minmax_type,
+        starting_population_type::StartPopType=_default_starting_population)
 
-function GenocopSpec{T <: FloatingPoint}(
+        GenocopSpecification{T}(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_upper, lower_bounds,
+                            upper_bounds, population_size, max_iterations, operator_mapping,
+                            cumulative_prob_coeff, minmax, starting_population_type)
+end
+
+function GenocopSpecification{T <: FloatingPoint}(
         evaluation_function::Function,
         equalities::Matrix{T},
         equalities_right::Vector{T},
@@ -80,11 +95,83 @@ function GenocopSpec{T <: FloatingPoint}(
 
         inequalities_lower = T[-Inf for i in 1:length(inequalities_right)]
 
-        GenocopSpec{T}(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_right, lower_bounds,
+        GenocopSpecification{T}(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_right, lower_bounds,
                             upper_bounds, population_size, max_iterations, operator_mapping,
                             cumulative_prob_coeff, minmax, starting_population_type)
 end
 
+
+# internal specification holding processed information
+
+immutable type InternalSpec{T <: FloatingPoint}
+    evaluation_function::Function
+    removed_variables_indices::Vector{Int}
+    inequalities::Matrix{T}
+    inequalities_lower::Vector{T}
+    inequalities_upper::Vector{T}
+    lower_bounds::Vector{T}
+    upper_bounds::Vector{T}
+    population_size::Integer
+    max_iterations::Integer
+    operators::Vector{Operator}
+    operator_frequency::Vector{Int16}
+    cumulative_prob_coeff::Float16
+    minmax::MinMaxType
+    starting_population_type::StartPopType
+
+    no_of_variables::Int
+    A1inv_b::Vector{T}
+    A1inv_A2::Matrix{T}
+
+    function InternalSpec{T}(
+        evaluation_function::Function,
+        removed_variables_indices::Vector{Int},
+        inequalities::Matrix{T},
+        inequalities_lower::Vector{T},
+        inequalities_upper::Vector{T},
+        lower_bounds::Vector{T},
+        upper_bounds::Vector{T},
+        population_size::Integer,
+        max_iterations::Integer,
+        operator_mapping::Dict{Operator, Integer},
+        cumulative_prob_coeff::FloatingPoint,
+        minmax::MinMaxType,
+        starting_population_type::StartPopType,
+        no_of_variables::Int,
+        A1inv_b::Vector{T},
+        A1inv_A2::Matrix{T})
+
+        operators = collect(keys(operator_mapping))
+        operator_frequency = Integer[operator_mapping[operator] / operator.arity for operator in operators]
+
+        new(evaluation_function, removed_variables_indices, inequalities, inequalities_lower, inequalities_upper,
+            lower_bounds, upper_bounds, population_size, max_iterations, operators, operator_frequency, cumulative_prob_coeff,
+            minmax, starting_population_type, no_of_variables, A1inv_b, A1inv_A2)
+    end
+end
+
+
+function InternalSpec{T <: FloatingPoint}(evaluation_function::Function,
+    removed_variables_indices::Vector{Int},
+    inequalities::Matrix{T},
+    inequalities_lower::Vector{T},
+    inequalities_upper::Vector{T},
+    lower_bounds::Vector{T},
+    upper_bounds::Vector{T},
+    population_size::Integer,
+    max_iterations::Integer,
+    operator_mapping::Dict{Operator, Integer},
+    cumulative_prob_coeff::FloatingPoint,
+    minmax::MinMaxType,
+    starting_population_type::StartPopType,
+    no_of_variables::Int,
+    A1inv_b::Vector{T},
+    A1inv_A2::Matrix{T})
+
+    InternalSpec{T}(evaluation_function, removed_variables_indices, inequalities, inequalities_lower, inequalities_upper,
+        lower_bounds, upper_bounds, population_size, max_iterations, operator_mapping, cumulative_prob_coeff,
+        minmax, starting_population_type, no_of_variables, A1inv_b, A1inv_A2)
+end
 
 
 # Individual type to store an individual
@@ -119,9 +206,9 @@ type Generation{T <: FloatingPoint}
     number::Integer
     population::Vector{Individual{T}}
     cumulative_probabilities::Vector{Float64}
-    operator_applications_left::Vector{Integer}
+    operator_applications_left::Vector{Int16}
 
-    function Generation(number::Integer, population::Vector{Individual{T}}, operator_applications_left::Vector{Integer})
+    function Generation(number::Integer, population::Vector{Individual{T}}, operator_applications_left::Vector{Int16})
         gen = new()
         gen.number = number
         gen.population = population
@@ -130,6 +217,6 @@ type Generation{T <: FloatingPoint}
     end
 end
 
-Generation{T <: FloatingPoint}(number::Integer, population::Vector{Individual{T}}, operator_applications_left::Vector{Integer}) = Generation{T}(number, population, operator_applications_left)
+Generation{T <: FloatingPoint}(number::Integer, population::Vector{Individual{T}}, operator_applications_left::Vector{Int16}) = Generation{T}(number, population, operator_applications_left)
 
 

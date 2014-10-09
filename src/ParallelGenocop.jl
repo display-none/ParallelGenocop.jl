@@ -17,7 +17,7 @@ export
     ArithmeticalCrossover, SimpleCrossover,
 
     #types
-    GenocopSpec, Individual
+    GenocopSpecification, Individual
 
 @Logging.configure(level=DEBUG)
 
@@ -29,6 +29,7 @@ include("utils.jl")
 include("evaluation.jl")
 include("initialization.jl")
 include("operators_impl.jl")
+include("reduction.jl")
 include("selection.jl")
 include("optimization.jl")
 
@@ -39,13 +40,15 @@ include("optimization.jl")
 #evaluation_function must be a function accepting one argument: a Vector{T}
 
 # TODO: maybe it's possible to accept Numbers instead of FloatingPoints
-function genocop{T <: FloatingPoint}(specification::GenocopSpec{T})
+function genocop{T <: FloatingPoint}(specification::GenocopSpecification{T})
     @debug "genocop starting"
-    population::Vector{Individual{T}} = initialize_population(specification)
-    best_individual = optimize!(population, specification)
+    internal_spec = reduce_equalities(specification)
+    population::Vector{Individual{T}} = initialize_population(internal_spec)
+    best_individual = optimize!(population, internal_spec)
 
-    @info "best individual: $(best_individual.chromosome)"
-    feasible = is_feasible(best_individual.chromosome, specification)
+    best_extended = extend_with_reduced_variables(best_individual.chromosome, internal_spec)
+    @info "best individual: $best_extended"
+    feasible = is_feasible(best_individual.chromosome, internal_spec)
     @info "individual feasible: $feasible"
     return best_individual.chromosome
 end

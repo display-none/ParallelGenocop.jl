@@ -50,7 +50,7 @@ eval_func = function(arg::Vector{Float64})
                               2.0*arg[3])*(arg[2] - 2.0*arg[3])*(arg[2] - 2.0*arg[3]) + 10.0*(arg[1])*(arg[1])*(arg[1])*(arg[1])
             end
 
-spec = GenocopSpec(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds,
+spec = GenocopSpecification(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds,
 upper_bounds; starting_population_type=multi_point_start_pop, minmax = maximization)
 
 
