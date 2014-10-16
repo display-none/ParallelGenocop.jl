@@ -3,6 +3,23 @@ custom_suite("selection tests")
 
 
 
+
+custom_test("assign_probabilities should assign probabilities to all individuals in order basing on the coefficient") do
+    ind1 = get_individual_with_fitness(2.0)
+    ind2 = get_individual_with_fitness(3.0)
+    ind3 = get_individual_with_fitness(5.0)
+    population = [ind1, ind2, ind3]
+    Q = 0.1
+
+    probabilities = ParallelGenocop.compute_probabilities!(population, Q)
+
+    @test_approx_eq (Q / (1 - (1-Q)^3)) probabilities[1]
+    @test_approx_eq (Q / (1 - (1-Q)^3) * (1-Q)) probabilities[2]
+    @test_approx_eq (Q / (1 - (1-Q)^3) * (1-Q)^2) probabilities[3]
+end
+
+
+
 custom_test("kill_somebody should kill the second individual when the first has 1 probability") do
     #given
     ind1 = get_individual_with_fitness(5.0)
