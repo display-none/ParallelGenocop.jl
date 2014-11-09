@@ -43,7 +43,7 @@ function same(first::Individual, second::Individual)
     return first.fitness != second.fitness && first.chromosome != second.chromosome
 end
 
-function evaluate_row{T <: FloatingPoint}(matrix::Matrix{T}, vector::Vector{T}, row_number)
+function evaluate_row{T <: FloatingPoint}(matrix::Matrix{T}, vector::AbstractVector{T}, row_number)
 #    matrix_row = sub(matrix, row_number, :)
 #    products = T[vector[i] * matrix_row[i] for i = 1:length(vector)]
 #    return sum_kbn(products)
@@ -51,7 +51,7 @@ function evaluate_row{T <: FloatingPoint}(matrix::Matrix{T}, vector::Vector{T}, 
     return dot(matrix_row, vector)
 end
 
-function evaluate_row_skip_position{T <: FloatingPoint}(matrix::Matrix{T}, vector::Vector{T}, row_number, position)
+function evaluate_row_skip_position{T <: FloatingPoint}(matrix::Matrix{T}, vector::AbstractVector{T}, row_number, position)
 #    matrix_row = sub(matrix, row_number, :)
 #    matrix_row = matrix[row_number, :]
 #    products = T[vector[i] * matrix_row[i] for i = 1:length(vector)]
@@ -61,7 +61,7 @@ function evaluate_row_skip_position{T <: FloatingPoint}(matrix::Matrix{T}, vecto
 end
 
 
-function is_feasible{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSpec{T})
+function is_feasible{T <: FloatingPoint}(chromosome::AbstractVector{T}, spec::InternalSpec{T})
     ineq = spec.inequalities
     ineq_lower = spec.inequalities_lower
     ineq_upper = spec.inequalities_upper
@@ -75,7 +75,7 @@ function is_feasible{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSp
     return true
 end
 
-function is_within_bounds{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSpec{T})
+function is_within_bounds{T <: FloatingPoint}(chromosome::AbstractVector{T}, spec::InternalSpec{T})
     upper = spec.upper_bounds
     lower = spec.lower_bounds
     for i in 1:length(chromosome)

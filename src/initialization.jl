@@ -31,8 +31,12 @@ function initialize_population_specified_point{T <: FloatingPoint}(spec::Interna
         @error "The point specified in GenocopSpec is not feasible"
         error("starting point not feasible")
     end
+	new_chromosome_shared = SharedArray(T, length(chromosome))
+    @inbounds for i=1:length(chromosome)
+        new_chromosome_shared[i] = chromosome[i]
+    end
 
-    return Individual{T}[Individual(copy(chromosome)) for i=1:spec.population_size]
+    return Individual{T}[Individual(copy(new_chromosome_shared)) for i=1:spec.population_size]
 end
 
 function initialize_population_multipoint{T <: FloatingPoint}(spec::InternalSpec{T})
@@ -60,7 +64,11 @@ function get_feasible_individual{T <: FloatingPoint}(spec::InternalSpec{T})
         random_chromosome = get_random_chromosome_within_bounds(spec)
 
         if is_feasible(random_chromosome, spec)
-            return Individual(random_chromosome)
+			new_chromosome_shared = SharedArray(T, length(random_chromosome))
+            @inbounds for i=1:length(random_chromosome)
+                new_chromosome_shared[i] = random_chromosome[i]
+            end
+            return Individual(new_chromosome_shared)
         end
     end
 

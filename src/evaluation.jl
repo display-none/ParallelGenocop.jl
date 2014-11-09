@@ -35,7 +35,7 @@ function evaluate_and_return_fitness{T <: FloatingPoint}(individual::Individual{
     return ev
 end
 
-function extend_with_reduced_variables{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSpec{T})
+function extend_with_reduced_variables{T <: FloatingPoint}(chromosome::AbstractVector{T}, spec::InternalSpec{T})
 
     if length(spec.removed_variables_indices) == 0
         return chromosome

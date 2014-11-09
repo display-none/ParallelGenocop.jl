@@ -110,7 +110,7 @@ function apply_operators_to_create_new_population!{T <: FloatingPoint}(generatio
 
     operator_applications_left = generation.operator_applications_left
     remote_references = RemoteRef[]
-    todos = (Vector{Vector{T}}, Operator)[]
+    todos = (Vector{AbstractVector{T}}, Operator)[]
 
     while sum(operator_applications_left) > 0
         random = rand(1:length(spec.operators))
@@ -127,11 +127,11 @@ function apply_operators_to_create_new_population!{T <: FloatingPoint}(generatio
     end
 
     tic()
-    procs = nprocs()
-    if procs == 1
-        new_individuals, time = fuckin_apply(todos, generation.number)
-        new_population = new_individuals
-    else
+#    procs = nprocs()
+#    if procs == 1
+#        new_individuals, time = fuckin_apply(todos, generation.number)
+#        new_population = new_individuals
+#    else
 #        starting_index = 1
 #        todos_length = length(todos)
 #        for proc = 1:procs-1
@@ -156,7 +156,7 @@ function apply_operators_to_create_new_population!{T <: FloatingPoint}(generatio
             apply_operator(todos[i][2], todos[i][1], generation_number)
         end
         total_computation += time
-    end
+#    end
     total_total += toq()
 
     append!(new_population, filter((ind -> !ind.dead), generation.population))
@@ -177,7 +177,7 @@ function fuckin_apply{T <: FloatingPoint}(todos::Vector{(Vector{Vector{T}}, Oper
 end
 
 
-function apply_operator{T <: FloatingPoint}(operator::Operator, parent_chromosomes::Vector{Vector{T}}, generation_number::Int)
+function apply_operator{T <: FloatingPoint}(operator::Operator, parent_chromosomes::Vector{AbstractVector{T}}, generation_number::Int)
     tic()
     spec = spec_holder.spec
     new_chromosomes = apply_operator(operator, parent_chromosomes, spec, generation_number)

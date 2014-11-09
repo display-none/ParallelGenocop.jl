@@ -212,11 +212,11 @@ end
 # Individual type to store an individual
 
 type Individual{T <: FloatingPoint}
-    chromosome::Vector{T}
+    chromosome::AbstractVector{T}
     fitness::Union(T, Nothing)
     dead::Bool
 
-    function Individual(chromosome::Vector{T})
+    function Individual(chromosome::AbstractVector{T})
         new(chromosome, nothing, false)
     end
 
@@ -225,7 +225,7 @@ type Individual{T <: FloatingPoint}
     end
 end
 
-Individual{T <: FloatingPoint}(chromosome::Vector{T}) = Individual{T}(chromosome)
+Individual{T <: FloatingPoint}(chromosome::AbstractVector{T}) = Individual{T}(chromosome)
 
 function copy(individual::Individual)
     ind = Individual(individual.chromosome)
