@@ -191,8 +191,7 @@ function apply_operator{T <: FloatingPoint}(operator::HeuristicCrossover, parent
     a = get_random_a()
     for i = 1:operator.tries
         new_chromosome = combine_better_worse_chromosomes(better_chromosome, worse_chromosome, a)
-        if is_within_bounds(new_chromosome, spec) && is_feasible(new_chromosome, spec) && false
-            @info "duuuupa:  $new_chromosome"
+        if is_within_bounds(new_chromosome, spec) && is_feasible(new_chromosome, spec)
             return Array{T, 1}[new_chromosome]
         end
     end

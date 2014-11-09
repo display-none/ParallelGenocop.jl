@@ -67,6 +67,7 @@ function reduce_equalities{T <: FloatingPoint}(spec::GenocopSpecification{T})
                         spec.cumulative_prob_coeff,
                         spec.minmax,
                         spec.starting_population_type,
+                        spec.starting_point,
                         no_of_variables,
                         A1inv_b,
                         A1inv_A2)
@@ -84,9 +85,9 @@ end
 
 function convert_no_equalities_spec_into_internal{T <: FloatingPoint}(spec::GenocopSpecification{T})
     variables_to_reduce = Int[]
-    no_of_variables = length(lower_bounds)
-    A1inv_b = T[]
-    A1inv_A2 = T[]
+    no_of_variables = length(spec.lower_bounds)
+    A1inv_b = Array(T, 0)
+    A1inv_A2 = Array(T, 0, 0)
 
     return InternalSpec(spec.evaluation_function,
                         variables_to_reduce,
@@ -101,6 +102,7 @@ function convert_no_equalities_spec_into_internal{T <: FloatingPoint}(spec::Geno
                         spec.cumulative_prob_coeff,
                         spec.minmax,
                         spec.starting_population_type,
+                        spec.starting_point,
                         no_of_variables,
                         A1inv_b,
                         A1inv_A2)

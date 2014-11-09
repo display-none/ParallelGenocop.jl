@@ -26,6 +26,10 @@ function verify_same_size(vector1::Vector, vector2::Vector, msg::String="")
     end
 end
 
+function has_rows(matrix::Matrix)
+    return size(matrix, 1) != 0
+end
+
 
 function get_random_float{T <: FloatingPoint}(start::T, stop::T)
     start in [-Inf, Inf] && stop in [-Inf, Inf] && @error "infinities"      #todo: use realmin and realmax
@@ -40,16 +44,20 @@ function same(first::Individual, second::Individual)
 end
 
 function evaluate_row{T <: FloatingPoint}(matrix::Matrix{T}, vector::Vector{T}, row_number)
-    matrix_row = sub(matrix, row_number, :)
-    products = T[vector[i] * matrix_row[i] for i = 1:length(vector)]
-    return sum_kbn(products)
+#    matrix_row = sub(matrix, row_number, :)
+#    products = T[vector[i] * matrix_row[i] for i = 1:length(vector)]
+#    return sum_kbn(products)
+    matrix_row = vec(matrix[row_number, :])
+    return dot(matrix_row, vector)
 end
 
 function evaluate_row_skip_position{T <: FloatingPoint}(matrix::Matrix{T}, vector::Vector{T}, row_number, position)
-    matrix_row = sub(matrix, row_number, :)
-    products = T[vector[i] * matrix_row[i] for i = 1:length(vector)]
-    products[position] = 0.0
-    return sum_kbn(products)
+#    matrix_row = sub(matrix, row_number, :)
+#    matrix_row = matrix[row_number, :]
+#    products = T[vector[i] * matrix_row[i] for i = 1:length(vector)]
+#    products[position] = 0.0
+#    return sum_kbn(products)
+    return evaluate_row(matrix, vector, row_number) - matrix[row_number, position]*vector[position]
 end
 
 
@@ -85,3 +93,37 @@ function sort_population!{T <: FloatingPoint}(population::Vector{Individual{T}},
     reverse = (minmax == maximization ? true : false)
     sort!(population, alg=QuickSort, by=(ind -> ind.fitness), rev=reverse)
 end
+
+
+
+
+
+
+
+
+
+
+type SpecHolder
+    spec::InternalSpec
+    SpecHolder() = new()
+end
+
+const spec_holder = SpecHolder()
+
+function set_spec(spec::InternalSpec)
+    spec_holder.spec = spec
+end
+
+
+
+type GenerationHolder
+    generation::Generation
+    GenerationHolder() = new()
+end
+
+const generation_holder = GenerationHolder()
+
+function set_generation(generation::Generation)
+    generation_holder.generation = generation
+end
+

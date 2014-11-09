@@ -16,6 +16,7 @@ immutable type GenocopSpecification{T <: FloatingPoint}
     cumulative_prob_coeff::FloatingPoint
     minmax::MinMaxType
     starting_population_type::StartPopType
+    starting_point::Union(Vector{T}, Nothing)
 
     function GenocopSpecification{T}(
         evaluation_function::Function,
@@ -31,17 +32,22 @@ immutable type GenocopSpecification{T <: FloatingPoint}
         operator_mapping::Dict{Operator, Integer},
         cumulative_prob_coeff::FloatingPoint,
         minmax::MinMaxType,
-        starting_population_type::StartPopType)
+        starting_population_type::StartPopType,
+        starting_point::Union(Vector{T}, Nothing))
 
         operators = collect(keys(operator_mapping))
-        operator_frequency = Integer[operator_mapping[operator] / operator.arity for operator in operators]
+        operator_frequency = Integer[div(operator_mapping[operator], operator.arity) for operator in operators]
 
         verify_dimensions_rows(equalities, equalities_right, "dimensions of equalities and its right hand side do not match")
         verify_dimensions_rows(inequalities, inequalities_lower, "dimensions of inequalities and its lower limits do not match")
         verify_dimensions_rows(inequalities, inequalities_upper, "dimensions of inequalities and its upper limits do not match")
-        verify_dimensions_columns(equalities, lower_bounds, "dimensions of equalities and lower bounds do not match")
-        verify_dimensions_columns(inequalities, upper_bounds, "dimensions of inequalities and upper bounds do not match")
         verify_same_size(lower_bounds, upper_bounds)
+        if has_rows(equalities)
+            verify_dimensions_columns(equalities, lower_bounds, "dimensions of equalities and lower bounds do not match")
+        end
+        if has_rows(inequalities)
+            verify_dimensions_columns(inequalities, upper_bounds, "dimensions of inequalities and upper bounds do not match")
+        end
         @assert population_size > 0 "population size must be a positive integer"
         @assert max_iterations > 0 "max iterations must be a positive integer"
         @assert sum(operator_frequency) > 0 "there must be at least one operator with at least one application"
@@ -53,7 +59,7 @@ immutable type GenocopSpecification{T <: FloatingPoint}
 
         new(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_upper, lower_bounds,
                 upper_bounds, population_size, max_iterations, operator_mapping,
-                cumulative_prob_coeff, minmax, starting_population_type)
+                cumulative_prob_coeff, minmax, starting_population_type, starting_point)
     end
 end
 
@@ -71,11 +77,12 @@ function GenocopSpecification{T <: FloatingPoint}(
         operator_mapping::Dict{Operator, Integer}=_default_operator_mapping,
         cumulative_prob_coeff::FloatingPoint=_default_cumulative_prob_coeff,
         minmax::MinMaxType=_default_minmax_type,
-        starting_population_type::StartPopType=_default_starting_population)
+        starting_population_type::StartPopType=_default_starting_population,
+        starting_point::Union(Vector{T}, Nothing)=nothing)
 
         GenocopSpecification{T}(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_upper, lower_bounds,
                             upper_bounds, population_size, max_iterations, operator_mapping,
-                            cumulative_prob_coeff, minmax, starting_population_type)
+                            cumulative_prob_coeff, minmax, starting_population_type, starting_point)
 end
 
 function GenocopSpecification{T <: FloatingPoint}(
@@ -91,13 +98,38 @@ function GenocopSpecification{T <: FloatingPoint}(
         operator_mapping::Dict{Operator, Integer}=_default_operator_mapping,
         cumulative_prob_coeff::FloatingPoint=_default_cumulative_prob_coeff,
         minmax::MinMaxType=_default_minmax_type,
-        starting_population_type::StartPopType=_default_starting_population)
+        starting_population_type::StartPopType=_default_starting_population,
+        starting_point::Union(Vector{T}, Nothing)=nothing)
 
         inequalities_lower = T[-Inf for i in 1:length(inequalities_right)]
 
         GenocopSpecification{T}(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_right, lower_bounds,
                             upper_bounds, population_size, max_iterations, operator_mapping,
-                            cumulative_prob_coeff, minmax, starting_population_type)
+                            cumulative_prob_coeff, minmax, starting_population_type, starting_point)
+end
+
+
+function GenocopSpecification{T <: FloatingPoint}(
+        evaluation_function::Function,
+        lower_bounds::Vector{T},
+        upper_bounds::Vector{T};
+        population_size::Integer=_default_population_size,
+        max_iterations::Integer=_default_max_iter,
+        operator_mapping::Dict{Operator, Integer}=_default_operator_mapping,
+        cumulative_prob_coeff::FloatingPoint=_default_cumulative_prob_coeff,
+        minmax::MinMaxType=_default_minmax_type,
+        starting_population_type::StartPopType=_default_starting_population,
+        starting_point::Union(Vector{T}, Nothing)=nothing)
+
+        equalities = Array(T, 0, 0)
+        equalities_right = Array(T, 0)
+        inequalities = Array(T, 0, 0)
+        inequalities_lower = Array(T, 0)
+        inequalities_right = Array(T, 0)
+
+        GenocopSpecification{T}(evaluation_function, equalities, equalities_right, inequalities, inequalities_lower, inequalities_right, lower_bounds,
+                            upper_bounds, population_size, max_iterations, operator_mapping,
+                            cumulative_prob_coeff, minmax, starting_population_type, starting_point)
 end
 
 
@@ -118,6 +150,7 @@ immutable type InternalSpec{T <: FloatingPoint}
     cumulative_prob_coeff::Float16
     minmax::MinMaxType
     starting_population_type::StartPopType
+    starting_point::Union(Vector{T}, Nothing)
 
     no_of_variables::Int
     A1inv_b::Vector{T}
@@ -137,16 +170,17 @@ immutable type InternalSpec{T <: FloatingPoint}
         cumulative_prob_coeff::FloatingPoint,
         minmax::MinMaxType,
         starting_population_type::StartPopType,
+        starting_point::Union(Vector{T}, Nothing),
         no_of_variables::Int,
         A1inv_b::Vector{T},
         A1inv_A2::Matrix{T})
 
         operators = collect(keys(operator_mapping))
-        operator_frequency = Integer[operator_mapping[operator] / operator.arity for operator in operators]
+        operator_frequency = Integer[div(operator_mapping[operator], operator.arity) for operator in operators]
 
         new(evaluation_function, removed_variables_indices, inequalities, inequalities_lower, inequalities_upper,
             lower_bounds, upper_bounds, population_size, max_iterations, operators, operator_frequency, cumulative_prob_coeff,
-            minmax, starting_population_type, no_of_variables, A1inv_b, A1inv_A2)
+            minmax, starting_population_type, starting_point, no_of_variables, A1inv_b, A1inv_A2)
     end
 end
 
@@ -164,13 +198,14 @@ function InternalSpec{T <: FloatingPoint}(evaluation_function::Function,
     cumulative_prob_coeff::FloatingPoint,
     minmax::MinMaxType,
     starting_population_type::StartPopType,
+    starting_point::Union(Vector{T}, Nothing),
     no_of_variables::Int,
     A1inv_b::Vector{T},
     A1inv_A2::Matrix{T})
 
     InternalSpec{T}(evaluation_function, removed_variables_indices, inequalities, inequalities_lower, inequalities_upper,
         lower_bounds, upper_bounds, population_size, max_iterations, operator_mapping, cumulative_prob_coeff,
-        minmax, starting_population_type, no_of_variables, A1inv_b, A1inv_A2)
+        minmax, starting_population_type, starting_point, no_of_variables, A1inv_b, A1inv_A2)
 end
 
 

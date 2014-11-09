@@ -3,16 +3,36 @@ function evaluate_population!{T <: FloatingPoint}(population::Vector{Individual{
     @debug "evaluating population"
     for individual in population
         if individual.fitness == nothing
-            evaluate!(individual, spec)
+            individual.fitness = evaluate_and_return_fitness(individual, spec)
         end
     end
 end
 
-function evaluate!{T <: FloatingPoint}(individual::Individual{T}, spec::InternalSpec{T})
+#parallel
+function aaevaluate_population!{T <: FloatingPoint}(population::Vector{Individual{T}}, spec::InternalSpec{T})
+    @debug "evaluating population"
+    remote_refs = Array(RemoteRef, length(population))
+    for i =  1:length(population)
+        individual = population[i]
+        if individual.fitness == nothing
+            ref = @spawn evaluate_and_return_fitness(individual, spec)
+            remote_refs[i] = ref
+        end
+    end
+
+    for i in 1:length(population)
+        individual = population[i]
+        if individual.fitness == nothing
+            individual.fitness = fetch(remote_refs[i])
+        end
+    end
+end
+
+function evaluate_and_return_fitness{T <: FloatingPoint}(individual::Individual{T}, spec::InternalSpec{T})
     chromosome = individual.chromosome
     extended_chromosome = extend_with_reduced_variables(chromosome, spec)
     ev::T = call_evaluation_function(extended_chromosome, spec.evaluation_function)
-    individual.fitness = ev
+    return ev
 end
 
 function extend_with_reduced_variables{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSpec{T})
@@ -49,13 +69,13 @@ function extend_with_reduced_variables{T <: FloatingPoint}(chromosome::Vector{T}
     return new_chromosome
 end
 
-function call_evaluation_function{T <: FloatingPoint}(chromosome::Vector{T}, evaluation_func::Function)
+function call_evaluation_function{T <: FloatingPoint}(chromosome::AbstractVector{T}, evaluation_func::Function)
     try
         return evaluation_func(chromosome)
     catch ex
         @error "evaluation of individual $chromosome failed"
         if isa(ex, MethodError)
-            @error "Julia couldn't find the method to accept one Vector{$T} argument while calling evaluation function. Check what you supplied"
+            @error "Julia couldn't find the method to accept one AbstractVector{$T} argument while calling evaluation function. Check what you supplied"
         else
             @error "The evaluation function you provided threw an exception"
         end

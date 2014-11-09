@@ -1,7 +1,11 @@
 
 function initialize_population{T <: FloatingPoint}(spec::InternalSpec{T})
     if spec.starting_population_type == single_point_start_pop
-        return initialize_population_single_point(spec)
+        if spec.starting_point == nothing
+            return initialize_population_single_point(spec)
+        else
+            return initialize_population_specified_point(spec)
+        end
     else
         return initialize_population_multipoint(spec)
     end
@@ -18,6 +22,17 @@ function initialize_population_single_point{T <: FloatingPoint}(spec::InternalSp
     end
 
     return Individual{T}[deepcopy(individual) for i=1:spec.population_size]
+end
+
+function initialize_population_specified_point{T <: FloatingPoint}(spec::InternalSpec{T})
+    @debug "beginning to initialize single point population from specified starting point"
+    chromosome = spec.starting_point
+    if !is_feasible(chromosome, spec)
+        @error "The point specified in GenocopSpec is not feasible"
+        error("starting point not feasible")
+    end
+
+    return Individual{T}[Individual(copy(chromosome)) for i=1:spec.population_size]
 end
 
 function initialize_population_multipoint{T <: FloatingPoint}(spec::InternalSpec{T})

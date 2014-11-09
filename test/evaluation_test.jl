@@ -1,7 +1,7 @@
 
 custom_suite("evaluation tests")
 
-custom_test("evaluate! should call evaluation function with appropriate arguments") do
+custom_test("evaluate_and_return_fitness should call evaluation function with appropriate arguments") do
     #given
     chromosome = [3.2, 4.3]
     called = false
@@ -14,7 +14,7 @@ custom_test("evaluate! should call evaluation function with appropriate argument
     end
 
     #when
-    ParallelGenocop.evaluate!(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
+    ParallelGenocop.evaluate_and_return_fitness(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
 
     #then
     @test called == true
@@ -22,7 +22,7 @@ custom_test("evaluate! should call evaluation function with appropriate argument
 end
 
 
-custom_test("evaluate! should call set the value returned by evaluation function in individual") do
+custom_test("evaluate_and_return_fitness should call set the value returned by evaluation function in individual") do
     #given
     individual = Individual([3.2, 4.3])
     fitness = 666.9
@@ -31,14 +31,14 @@ custom_test("evaluate! should call set the value returned by evaluation function
     end
 
     #when
-    ParallelGenocop.evaluate!(individual, get_sample_spec(evaluation_func = eval_func))
+    returned = ParallelGenocop.evaluate_and_return_fitness(individual, get_sample_spec(evaluation_func = eval_func))
 
     #then
-    @test individual.fitness == fitness
+    @test returned == fitness
 end
 
 
-custom_test("evaluate! should rethrow MethodError when evaluation function supplied with wrong signature") do
+custom_test("evaluate_and_return_fitness should rethrow MethodError when evaluation function supplied with wrong signature") do
     #given
     chromosome = [3.2, 4.3]
     function eval_func(ch::Vector{Integer})
@@ -46,10 +46,10 @@ custom_test("evaluate! should rethrow MethodError when evaluation function suppl
     end
 
     #when & then
-    @test_throws MethodError ParallelGenocop.evaluate!(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
+    @test_throws MethodError ParallelGenocop.evaluate_and_return_fitness(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
 end
 
-custom_test("evaluate! should rethrow an exception thrown by the evaluation function") do
+custom_test("evaluate_and_return_fitness should rethrow an exception thrown by the evaluation function") do
     #given
     chromosome = [3.2, 4.3]
     function eval_func(ch::Vector)
@@ -57,7 +57,7 @@ custom_test("evaluate! should rethrow an exception thrown by the evaluation func
     end
 
     #when & then
-    @test_throws InexactError ParallelGenocop.evaluate!(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
+    @test_throws InexactError ParallelGenocop.evaluate_and_return_fitness(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
 end
 
 

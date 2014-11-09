@@ -29,7 +29,7 @@ function get_sample_spec(starting_population_type = single_point_start_pop;
 
     ParallelGenocop.InternalSpec(evaluation_func, Int[], inequalities, inequalities_lower, inequalities_upper,
                     lower_bounds, upper_bounds, 70, 500, ParallelGenocop._default_operator_mapping, 0.1,
-                    maximization, starting_population_type, length(lower_bounds), Float64[], Float64[1.0 2.0; 2.0 3.0])
+                    maximization, starting_population_type, nothing, length(lower_bounds), Float64[], Float64[1.0 2.0; 2.0 3.0])
 end
 
 
