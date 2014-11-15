@@ -14,7 +14,7 @@ custom_test("evaluate_and_return_fitness should call evaluation function with ap
     end
 
     #when
-    ParallelGenocop.evaluate_and_return_fitness(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
+    ParallelGenocop.evaluate_and_return_fitness(chromosome, get_sample_spec(evaluation_func = eval_func))
 
     #then
     @test called == true
@@ -22,16 +22,16 @@ custom_test("evaluate_and_return_fitness should call evaluation function with ap
 end
 
 
-custom_test("evaluate_and_return_fitness should call set the value returned by evaluation function in individual") do
+custom_test("evaluate_and_return_fitness should return the value returned by evaluation function") do
     #given
-    individual = Individual([3.2, 4.3])
+    chromosome = [3.2, 4.3]
     fitness = 666.9
     function eval_func(ch::Vector)
         return fitness
     end
 
     #when
-    returned = ParallelGenocop.evaluate_and_return_fitness(individual, get_sample_spec(evaluation_func = eval_func))
+    returned = ParallelGenocop.evaluate_and_return_fitness(chromosome, get_sample_spec(evaluation_func = eval_func))
 
     #then
     @test returned == fitness
@@ -46,7 +46,7 @@ custom_test("evaluate_and_return_fitness should rethrow MethodError when evaluat
     end
 
     #when & then
-    @test_throws MethodError ParallelGenocop.evaluate_and_return_fitness(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
+    @test_throws MethodError ParallelGenocop.evaluate_and_return_fitness(chromosome, get_sample_spec(evaluation_func = eval_func))
 end
 
 custom_test("evaluate_and_return_fitness should rethrow an exception thrown by the evaluation function") do
@@ -57,31 +57,6 @@ custom_test("evaluate_and_return_fitness should rethrow an exception thrown by t
     end
 
     #when & then
-    @test_throws InexactError ParallelGenocop.evaluate_and_return_fitness(Individual(chromosome), get_sample_spec(evaluation_func = eval_func))
+    @test_throws InexactError ParallelGenocop.evaluate_and_return_fitness(chromosome, get_sample_spec(evaluation_func = eval_func))
 end
 
-
-custom_test("evaluate_population! should evaluate only individuals not already evaluated") do
-    #given
-    individual1 = Individual([1.0, 1.0])
-    individual2 = Individual([2.0, 2.0])
-    individual2.fitness = 2.0
-    individual3 = Individual([3.0, 3.0])
-
-    called1 = false
-    called2 = false
-    called3 = false
-    function eval_func(ch::Vector)
-        ch == [1.0, 1.0] ? called1 = true :
-        ch == [2.0, 2.0] ? called2 = true :
-        ch == [3.0, 3.0] ? called3 = true : nothing
-    end
-
-    #when
-    ParallelGenocop.evaluate_population!([individual1, individual2, individual3], get_sample_spec(evaluation_func = eval_func))
-
-    #then
-    @test called1 == true
-    @test called2 == false
-    @test called3 == true
-end

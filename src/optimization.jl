@@ -1,10 +1,9 @@
 
 
-function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual{T}}, spec::InternalSpec{T})
+function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual}, spec::InternalSpec{T})
     @debug "Beginning optimization"
-    best_individual::Individual{T} = initial_population[1]
+    best_individual::Individual = initial_population[1]
     new_population = initial_population
-    evaluate_population!(new_population, spec)
     iteration = 1
 
 
@@ -15,7 +14,6 @@ function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual{T}}
         generation = Generation(iteration, new_population, copy(spec.operator_frequency))
 
         population = generation.population
-        #evaluate_population!(population, spec)
         sort_population!(population, spec.minmax)
         generation.cumulative_probabilities = cumsum(compute_probabilities!(population, spec.cumulative_prob_coeff))    #can be changed to cumsum_kbn for increased accuracy
         best_individual = find_best_individual(best_individual, population[1], spec.minmax, iteration)
@@ -26,21 +24,20 @@ function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual{T}}
         iteration += 1
     end
 
-    #evaluate_population!(new_population, spec)
     sort_population!(new_population, spec.minmax)
     best_individual = find_best_individual(best_individual, new_population[1], spec.minmax, spec.max_iterations)
 
     println("\n\nTime of call + computation: $total_total.\nTime of computation: $total_computation\n")
     println("Communication overhead: $(total_total / total_computation * 100)%\n\n")
 
-    @debug "best individual found with fitness $(best_individual.fitness)"
+    @debug "best individual found with fitness $(get_fitness(best_individual))"
     return best_individual
 end
 
 
-function aaapply_operators_to_create_new_population!{T <: FloatingPoint}(generation::Generation{T}, spec::InternalSpec{T})
+function aaapply_operators_to_create_new_population!{T <: FloatingPoint}(generation::Generation, spec::InternalSpec{T})
     @debug "applying operators"
-    new_population::Vector{Individual{T}} = []
+    new_population::Vector{Individual} = []
     operator_applications_left = generation.operator_applications_left
     while sum(operator_applications_left) > 0
         random = rand(1:length(spec.operators))
@@ -61,9 +58,9 @@ function aaapply_operators_to_create_new_population!{T <: FloatingPoint}(generat
 end
 
 #parallel
-function aaaaaaaapply_operators_to_create_new_population!{T <: FloatingPoint}(generation::Generation{T}, spec::InternalSpec{T})
+function aaaaaaaapply_operators_to_create_new_population!{T <: FloatingPoint}(generation::Generation, spec::InternalSpec{T})
     @debug "applying operators"
-    new_population::Vector{Individual{T}} = []
+    new_population::Vector{Individual} = []
 
     total_total = 0.0
     total_computation = 0.0
@@ -101,16 +98,15 @@ function aaaaaaaapply_operators_to_create_new_population!{T <: FloatingPoint}(ge
     return new_population, total_total, total_computation
 end
 
-function apply_operators_to_create_new_population!{T <: FloatingPoint}(generation::Generation{T}, spec::InternalSpec{T})
+function apply_operators_to_create_new_population!{T <: FloatingPoint}(generation::Generation, spec::InternalSpec{T})
     @debug "applying operators"
-    new_population::Vector{Individual{T}} = []
+    new_population::Vector{Individual} = []
 
     total_total = 0.0
     total_computation = 0.0
 
     operator_applications_left = generation.operator_applications_left
-    remote_references = RemoteRef[]
-    todos = (Vector{AbstractVector{T}}, Operator)[]
+    jobs = ASCIIString[]
 
     while sum(operator_applications_left) > 0
         random = rand(1:length(spec.operators))
@@ -118,8 +114,10 @@ function apply_operators_to_create_new_population!{T <: FloatingPoint}(generatio
         if operator_applications_left[random] > 0
             operator = spec.operators[random]
 
-            parent_chromosomes = select_parents(operator, generation)
-            push!(todos, (parent_chromosomes, operator))
+            parents, dead = select_parents_and_dead(operator, generation)
+            children = prepare_children_from_dead(dead)
+            push!(jobs, serialize_job(parents, children, operator, spec))
+            append!(new_population, children)
 
 
             operator_applications_left[random] -= 1
@@ -127,36 +125,11 @@ function apply_operators_to_create_new_population!{T <: FloatingPoint}(generatio
     end
 
     tic()
-#    procs = nprocs()
-#    if procs == 1
-#        new_individuals, time = fuckin_apply(todos, generation.number)
-#        new_population = new_individuals
-#    else
-#        starting_index = 1
-#        todos_length = length(todos)
-#        for proc = 1:procs-1
-#            range = starting_index : starting_index + div(todos_length-starting_index, procs-proc)
-#            todos_part = todos[range]
-#            ref = @spawn fuckin_apply(todos_part, generation.number)
-#            push!(remote_references, ref)
-#            starting_index = range[end]+1
-#        end
-
-#        for ref in remote_references
-#            new_individuals, time = fetch(ref)
-#            append!(new_population, new_individuals)
-#            total_computation += time
-#        end
-
-        function red(one::(Array, FloatingPoint), two::(Array, FloatingPoint))
-            return ([one[1];two[1]], one[2]+two[2])
-        end
-        generation_number = generation.number
-        new_population, time = @parallel (red) for i=1:length(todos)
-            apply_operator(todos[i][2], todos[i][1], generation_number)
-        end
-        total_computation += time
-#    end
+    generation_number = generation.number
+    time = @parallel (+) for i=1:length(jobs)
+        apply_operator!(jobs[i], generation_number)
+    end
+    total_computation += time
     total_total += toq()
 
     append!(new_population, filter((ind -> !ind.dead), generation.population))
@@ -165,42 +138,52 @@ function apply_operators_to_create_new_population!{T <: FloatingPoint}(generatio
     return new_population, total_total, total_computation
 end
 
-function fuckin_apply{T <: FloatingPoint}(todos::Vector{(Vector{Vector{T}}, Operator)}, generation_number::Int)
-    new_chromosomes = Individual{T}[]
-    total_time = 0.0
-    for (chromosomes, operator) in todos
-       new_individuals, time = apply_operator(operator, chromosomes, generation_number)
-       total_time += time
-       append!(new_chromosomes, new_individuals)
-    end
-    return new_chromosomes, total_time
+function serialize_job{T <: FloatingPoint}(parents::Vector{Individual}, children::Vector{Individual}, operator::Operator, spec::InternalSpec{T})
+	p = join([string(ind.column) for ind in parents], ',')
+	c = join([string(ind.column) for ind in children], ',')
+	o = string(findfirst(spec.operators, operator))
+	return "$p;$c;$o"
 end
 
+function deserialize_job{T <: FloatingPoint}(job::ASCIIString, spec::InternalSpec{T})
+	p, c, o = split(job, ';')
+	parents = [Individual(int(i)) for i in split(p, ',')]
+	children = [Individual(int(i)) for i in split(c, ',')]
+	operator = spec.operators[int(o)]
+	return parents, children, operator
+end
 
-function apply_operator{T <: FloatingPoint}(operator::Operator, parent_chromosomes::Vector{AbstractVector{T}}, generation_number::Int)
+function apply_operator!(job::ASCIIString, generation_number::Int)
+	spec = spec_holder.spec
+	parents, children, operator = deserialize_job(job, spec)
+	return apply_operator!(operator, parents, children, generation_number, spec)
+end
+
+function apply_operator!{T <: FloatingPoint}(operator::Operator, parents::Vector{Individual}, children::Vector{Individual}, generation_number::Int, spec::InternalSpec{T})
     tic()
-    spec = spec_holder.spec
-    new_chromosomes = apply_operator(operator, parent_chromosomes, spec, generation_number)
-    new_individuals = [Individual(chromosome) for chromosome in new_chromosomes]
-    for new_individual in new_individuals
-        new_individual.fitness = evaluate_and_return_fitness(new_individual, spec)
+    apply_operator!(operator, parents, children, spec, generation_number)
+    for child in children
+        set_fitness!(child, evaluate_and_return_fitness(child, spec))
     end
-    return new_individuals, toq()
+    return toq()
 end
 
+function prepare_children_from_dead(dead::Vector{Individual})
+    return [Individual(d.column) for d in dead]
+end
 
 function find_best_individual(current::Individual, new::Individual, minmax::MinMaxType, generation_no)
     @debug "checking for new best individual"
     if minmax == minimization
-        if new.fitness < current.fitness
-            @info "Solution improved. Generation $generation_no, value $(new.fitness)"
+        if get_fitness(new) < get_fitness(current)
+            @info "Solution improved. Generation $generation_no, value $(get_fitness(new))"
             return new
         else
             return current
         end
     else
-        if current.fitness < new.fitness
-            @info "Solution improved. Generation $generation_no, value $(new.fitness)"
+        if get_fitness(current) < get_fitness(new)
+            @info "Solution improved. Generation $generation_no, value $(get_fitness(new))"
             return new
         else
             return current

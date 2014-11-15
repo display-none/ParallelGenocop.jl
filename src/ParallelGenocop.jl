@@ -1,7 +1,8 @@
 module ParallelGenocop
 using Distributions: Uniform
 using Logging
-import Base.copy
+using NumericExtensions
+import Base.copy, Base.length
 
 export
     #main function
@@ -22,6 +23,7 @@ export
     GenocopSpecification, Individual
 
 @Logging.configure(level=DEBUG)
+# blas_set_num_threads(2)
 
 
 include("operator_types.jl")
@@ -46,21 +48,21 @@ include("optimization.jl")
 function genocop{T <: FloatingPoint}(specification::GenocopSpecification{T})
     @debug "genocop starting"
     internal_spec = reduce_equalities(specification)
+    population_data, fitness_data = initialize_population_data(internal_spec)
 
-    @sync begin
-        for process in procs()
-            @spawn set_spec(internal_spec)
-        end
+    for process in procs()
+        @fetchfrom process (set_spec(internal_spec);set_population_data(population_data, fitness_data))
     end
 
-    population::Vector{Individual{T}} = initialize_population(internal_spec)
+    population::Vector{Individual} = initialize_population(internal_spec)
     best_individual = optimize!(population, internal_spec)
 
-    best_extended = extend_with_reduced_variables(best_individual.chromosome, internal_spec)
-    @info "best individual: $best_extended"
-    feasible = is_feasible(best_individual.chromosome, internal_spec)
+    best_extended = extend_with_reduced_variables(best_individual, internal_spec)
+    best_real = typeof(best_extended) <: Vector ? best_extended : [best_extended[i] for i=1:length(best_extended)]
+    @info "best individual: $best_real"
+    feasible = is_feasible(best_individual, internal_spec)
     @info "individual feasible: $feasible"
-    return best_extended
+    return best_real
 end
 
 

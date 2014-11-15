@@ -156,6 +156,9 @@ immutable type InternalSpec{T <: FloatingPoint}
     A1inv_b::Vector{T}
     A1inv_A2::Matrix{T}
 
+
+    ineq::Matrix{T}
+
     function InternalSpec{T}(
         evaluation_function::Function,
         removed_variables_indices::Vector{Int},
@@ -178,9 +181,11 @@ immutable type InternalSpec{T <: FloatingPoint}
         operators = collect(keys(operator_mapping))
         operator_frequency = Integer[div(operator_mapping[operator], operator.arity) for operator in operators]
 
+        ineq = flipud(rotl90(inequalities))
+
         new(evaluation_function, removed_variables_indices, inequalities, inequalities_lower, inequalities_upper,
             lower_bounds, upper_bounds, population_size, max_iterations, operators, operator_frequency, cumulative_prob_coeff,
-            minmax, starting_population_type, starting_point, no_of_variables, A1inv_b, A1inv_A2)
+            minmax, starting_population_type, starting_point, no_of_variables, A1inv_b, A1inv_A2, ineq)
     end
 end
 
@@ -211,39 +216,69 @@ end
 
 # Individual type to store an individual
 
-type Individual{T <: FloatingPoint}
-    chromosome::AbstractVector{T}
-    fitness::Union(T, Nothing)
+type Individual
+    column::Int
     dead::Bool
 
-    function Individual(chromosome::AbstractVector{T})
-        new(chromosome, nothing, false)
+    function Individual(column::Int)
+        new(column, false)
     end
 
-    function Individual(individual::Individual{T})
-        new(individual.chromosome, individual.fitness, individual.dead)
+end
+
+function Individual{T <: FloatingPoint}(column::Int, chromosome::AbstractVector{T})
+    ind = Individual(column)
+    population_data = population_data_holder.population_data
+    checkbounds(population_data, length(chromosome), column)
+    @inbounds for i=1:length(chromosome)
+        population_data[i, column] = chromosome[i]
+    end
+    ind
+end
+
+function Individual{T <: FloatingPoint}(column::Int, chromosome::AbstractVector{T}, fitness::T)
+    ind = Individual(column, chromosome)
+    set_fitness!(ind, fitness)
+    ind
+end
+
+
+getindex(ind::Individual, x) = getindex(population_data_holder.population_data, x, ind.column)
+setindex!(ind::Individual, v, x) = setindex!(population_data_holder.population_data, v, x, ind.column)
+
+length(ind::Individual) = size(population_data_holder.population_data, 1)
+==(ind1::Individual, ind2::Individual) = (ind1.column == ind2.column)
+
+get_chromosome(ind::Individual) = population_data_holder.population_data[:, ind.column]
+get_chromosome(ind::Individual, range) = population_data_holder.population_data[range, ind.column]
+set_chromosome!(ind::Individual, chromosome) = (population_data_holder.population_data[:, ind.column] = chromosome)
+set_chromosome!(ind::Individual, chromosome, range) = (population_data_holder.population_data[range, ind.column] = chromosome)
+get_fitness(ind::Individual) = population_data_holder.fitness_data[ind.column]
+set_fitness!(ind::Individual, fitness::FloatingPoint) = population_data_holder.fitness_data[ind.column] = fitness
+
+function copy_into(dest::Individual, src::Individual)
+    copy_into(dest, src, 1:size(population_data_holder.population_data, 1))
+end
+
+function copy_into(dest::Individual, src::Individual, range::UnitRange{Int})
+    if dest == src; return; end
+    population_data = population_data_holder.population_data
+    checkbounds(population_data, range, dest.column)
+    checkbounds(population_data, range, src.column)
+    @inbounds for i in range
+        population_data[i, dest.column] = population_data[i, src.column]
     end
 end
-
-Individual{T <: FloatingPoint}(chromosome::AbstractVector{T}) = Individual{T}(chromosome)
-
-function copy(individual::Individual)
-    ind = Individual(individual.chromosome)
-    ind.fitness = individual.fitness
-    ind.dead = individual.dead
-    return ind
-end
-
 
 # Generation type to represent a generation
 
-type Generation{T <: FloatingPoint}
+type Generation
     number::Integer
-    population::Vector{Individual{T}}
+    population::Vector{Individual}
     cumulative_probabilities::Vector{Float64}
     operator_applications_left::Vector{Int16}
 
-    function Generation(number::Integer, population::Vector{Individual{T}}, operator_applications_left::Vector{Int16})
+    function Generation(number::Integer, population::Vector{Individual}, operator_applications_left::Vector{Int16})
         gen = new()
         gen.number = number
         gen.population = population
@@ -251,7 +286,5 @@ type Generation{T <: FloatingPoint}
         return gen
     end
 end
-
-Generation{T <: FloatingPoint}(number::Integer, population::Vector{Individual{T}}, operator_applications_left::Vector{Int16}) = Generation{T}(number, population, operator_applications_left)
 
 

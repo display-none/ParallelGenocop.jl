@@ -14,14 +14,15 @@ end
 function initialize_population_single_point{T <: FloatingPoint}(spec::InternalSpec{T})
     @debug "beginning to initialize single point population"
 
-    individual = get_feasible_individual(spec)
-    if individual == nothing
-        @error "No feasible individual was found in $_population_initialization_tries tries. \
+    chromosome = get_feasible_chromosome(spec)
+    if chromosome == nothing
+        @error "No feasible chromosome was found in $_population_initialization_tries tries. \
                 You can try again with starting point specified in the GenocopSpec"
-        error("no feasible individual found")
+        error("no feasible chromosome found")
     end
-
-    return Individual{T}[deepcopy(individual) for i=1:spec.population_size]
+    fitness = evaluate_and_return_fitness(chromosome, spec)
+    initialize_population_data_with_point(chromosome, fitness)
+    return Individual[Individual(i) for i=1:spec.population_size]
 end
 
 function initialize_population_specified_point{T <: FloatingPoint}(spec::InternalSpec{T})
@@ -31,44 +32,55 @@ function initialize_population_specified_point{T <: FloatingPoint}(spec::Interna
         @error "The point specified in GenocopSpec is not feasible"
         error("starting point not feasible")
     end
-	new_chromosome_shared = SharedArray(T, length(chromosome))
-    @inbounds for i=1:length(chromosome)
-        new_chromosome_shared[i] = chromosome[i]
+    fitness = evaluate_and_return_fitness(chromosome, spec)
+    initialize_population_data_with_point(chromosome, fitness)
+    return Individual[Individual(i) for i=1:spec.population_size]
+end
+
+function initialize_population_data_with_point{T <: FloatingPoint}(chromosome::Vector{T}, fitness::T)
+    population_data = population_data_holder.population_data
+    rows = size(population_data, 1)
+    cols = size(population_data, 2)
+    rows == length(chromosome) || BoundsError()
+    @inbounds for c=1:cols
+        for r=1:rows
+            population_data[r, c] = chromosome[r]
+        end
     end
 
-    return Individual{T}[Individual(copy(new_chromosome_shared)) for i=1:spec.population_size]
+    fitness_data = population_data_holder.fitness_data
+    @inbounds for i = 1:length(fitness_data)
+        fitness_data[i] = fitness
+    end
 end
 
 function initialize_population_multipoint{T <: FloatingPoint}(spec::InternalSpec{T})
     @debug "beginning to initialize multi point population"
 
-    population = Array(Individual{T}, spec.population_size)
-    for i=1:spec.population_size
-        individual = get_feasible_individual(spec)
-        if individual == nothing
-            @error "No feasible individual was found in $_population_initialization_tries tries. \
-                    Before this failure we generated successfully $i individuals. \
+    population = Array(Individual, spec.population_size)
+    @inbounds for i=1:spec.population_size
+        chromosome = get_feasible_chromosome(spec)
+        if chromosome == nothing
+            @error "No feasible chromosome was found in $_population_initialization_tries tries. \
+                    Before this failure we generated successfully $i chromosomes. \
                     You can try again with starting point specified in the GenocopSpec"
             error("no feasible individual found")
         end
 
-        population[i] = individual
+        fitness = evaluate_and_return_fitness(chromosome, spec)
+        population[i] = Individual(i, chromosome, fitness)
     end
     return population
 end
 
-function get_feasible_individual{T <: FloatingPoint}(spec::InternalSpec{T})
+function get_feasible_chromosome{T <: FloatingPoint}(spec::InternalSpec{T})
 
     for i = 1:_population_initialization_tries
 
         random_chromosome = get_random_chromosome_within_bounds(spec)
 
         if is_feasible(random_chromosome, spec)
-			new_chromosome_shared = SharedArray(T, length(random_chromosome))
-            @inbounds for i=1:length(random_chromosome)
-                new_chromosome_shared[i] = random_chromosome[i]
-            end
-            return Individual(new_chromosome_shared)
+            return random_chromosome
         end
     end
 
@@ -77,7 +89,7 @@ end
 
 function get_random_chromosome_within_bounds{T <: FloatingPoint}(spec::InternalSpec{T})
     chromosome = Array(T, spec.no_of_variables)
-    for i in 1:spec.no_of_variables
+    @inbounds for i in 1:spec.no_of_variables
         low = spec.lower_bounds[i]
         upp = spec.upper_bounds[i]
         chromosome[i] = get_random_float(low, upp)

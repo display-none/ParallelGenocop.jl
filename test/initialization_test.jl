@@ -1,6 +1,8 @@
 
 custom_suite("initialization tests")
 
+get_chromosome = ParallelGenocop.get_chromosome
+
 custom_test("get_random_chromosome_within_bounds should return a chromosome within bounds") do
     #given
     lower_bounds = Float64[1.0, 0.0, -2.1, 0.0]
@@ -17,28 +19,28 @@ custom_test("get_random_chromosome_within_bounds should return a chromosome with
 end
 
 
-custom_test("get_feasible_individual should return an individual") do
+custom_test("get_feasible_chromosome should return a chromosome") do
     #given
     spec = get_spec_with_all_individuals_feasible()
 
     #when
-    individual = ParallelGenocop.get_feasible_individual(spec)
+    chromosome = ParallelGenocop.get_feasible_chromosome(spec)
 
     #then
-    @test individual != nothing
+    @test chromosome != nothing
 end
 
 
 
-custom_test("get_feasible_individual should return nothing if feasible individual is not found") do
+custom_test("get_feasible_chromosome should return nothing if feasible chromosome is not found") do
     #given
     spec = get_spec_with_all_individuals_infeasible()
 
     #when
-    individual = ParallelGenocop.get_feasible_individual(spec)
+    chromosome = ParallelGenocop.get_feasible_chromosome(spec)
 
     #then
-    @test individual == nothing
+    @test chromosome == nothing
 end
 
 
@@ -51,7 +53,7 @@ custom_test("initialize_population_multipoint should return population that cons
     population = ParallelGenocop.initialize_population_multipoint(spec)
 
     #then
-    @test population[1].chromosome != population[2].chromosome
+    @test get_chromosome(population[1]) != get_chromosome(population[2])
 end
 
 
@@ -77,7 +79,7 @@ end
 
 
 
-custom_test("initialize_population_single_point should return population identical copies of the individual") do
+custom_test("initialize_population_single_point should return different individuals with the same chromosome") do
     #given
     spec = get_spec_with_all_individuals_feasible()
 
@@ -85,8 +87,8 @@ custom_test("initialize_population_single_point should return population identic
     population = ParallelGenocop.initialize_population_single_point(spec)
 
     #then
-    @test population[1].chromosome == population[2].chromosome
-    @test population[1] != population[2]    #should be a copy, not a reference to the same object
+    @test get_chromosome(population[1]) == get_chromosome(population[2])
+    @test population[1].column != population[2].column
 end
 
 
@@ -120,7 +122,7 @@ custom_test("initialize_population should return single point population if sing
     population = ParallelGenocop.initialize_population(spec)
 
     #then
-    @test population[1].chromosome == population[2].chromosome
+    @test get_chromosome(population[1]) == get_chromosome(population[2])
 end
 
 
@@ -132,5 +134,5 @@ custom_test("initialize_population should return multi point population if multi
     population = ParallelGenocop.initialize_population(spec)
 
     #then
-    @test population[1].chromosome != population[2].chromosome
+    @test get_chromosome(population[1]) != get_chromosome(population[2])
 end

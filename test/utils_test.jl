@@ -2,13 +2,6 @@
 custom_suite("utils test")
 
 
-function get_individual_with_fitness(fitness)
-    ind = Individual([.1, .2])
-    ind.fitness = fitness
-    return ind
-end
-
-
 custom_test("verify_dimensions_rows should throw error when no of rows in a matrix does not match vector length") do
     matrix = [2.0 1.0 0.0 -3.5]
     vector = [1.0, 3.2]
@@ -48,9 +41,9 @@ custom_test("verify_same_size should do nothing when vectors sizes match") do
 end
 
 custom_test("sort_population! should sort supplied array") do
-    ind1 = get_individual_with_fitness(.9)
-    ind2 = get_individual_with_fitness(.2)
-    ind3 = get_individual_with_fitness(.7)
+    ind1 = get_individual_with_fitness(.9, 1)
+    ind2 = get_individual_with_fitness(.2, 2)
+    ind3 = get_individual_with_fitness(.7, 3)
     population = [ind1, ind2, ind3]
 
     ParallelGenocop.sort_population!(population, minimization)
@@ -90,22 +83,22 @@ end
 
 custom_test("is_within_bounds should return false when at least one position is out of lower bounds") do
     spec = get_sample_spec(upper_bounds=Float64[4.0, 4.0, 4.0, 4.0], lower_bounds=Float64[0.0, 0.0, 0.0, 0.0])
+    individual = get_individual_with_chromosome(Float64[1.3, -0.3, 1.2, 3.3])
 
-
-    @test false == ParallelGenocop.is_within_bounds(Float64[1.3, -0.3, 1.2, 3.3], spec)
+    @test false == ParallelGenocop.is_within_bounds(individual, spec)
 end
 
 custom_test("is_within_bounds should return false when at least one position is out of upper bounds") do
     spec = get_sample_spec(upper_bounds=Float64[4.0, 4.0, 4.0, 4.0], lower_bounds=Float64[0.0, 0.0, 0.0, 0.0])
+    individual = get_individual_with_chromosome(Float64[1.3, 2.3, 4.2, 3.3])
 
-
-    @test false == ParallelGenocop.is_within_bounds(Float64[1.3, 2.3, 4.2, 3.3], spec)
+    @test false == ParallelGenocop.is_within_bounds(individual, spec)
 end
 
 custom_test("is_within_bounds should return true when chromosome is within bounds") do
     spec = get_sample_spec(upper_bounds=Float64[4.0, 4.0, 4.0, 4.0], lower_bounds=Float64[0.0, 0.0, 0.0, 0.0])
+    individual = get_individual_with_chromosome(Float64[1.3, 2.3, 1.2, 3.3])
 
-
-    @test true == ParallelGenocop.is_within_bounds(Float64[1.3, 2.3, 1.2, 3.3], spec)
+    @test true == ParallelGenocop.is_within_bounds(individual, spec)
 end
 
