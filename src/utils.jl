@@ -30,9 +30,25 @@ function has_rows(matrix::Matrix)
     return size(matrix, 1) != 0
 end
 
+function replace_infinities{T <: FloatingPoint}(start::T, stop::T)
+    if start == Inf
+        start = _infinity_for_distributions
+    elseif start == -Inf
+        start = -_infinity_for_distributions
+    end
+    if stop == Inf
+        stop = _infinity_for_distributions
+    elseif stop == -Inf
+        stop = -_infinity_for_distributions
+    end
+    return start, stop
+end
 
 function get_random_float{T <: FloatingPoint}(start::T, stop::T)
-    start in [-Inf, Inf] && stop in [-Inf, Inf] && @error "infinities"      #todo: use realmin and realmax
+    if stop-start == Inf
+        start, stop = replace_infinities(start, stop)
+    end
+
     if start == stop
         return start
     end

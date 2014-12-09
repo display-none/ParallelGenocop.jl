@@ -137,7 +137,7 @@ end
 
 immutable type InternalSpec{T <: FloatingPoint}
     evaluation_function::Function
-    removed_variables_indices::Vector{Int}
+    permutation_vector::Vector
     inequalities::Matrix{T}
     inequalities_lower::Vector{T}
     inequalities_upper::Vector{T}
@@ -153,15 +153,15 @@ immutable type InternalSpec{T <: FloatingPoint}
     starting_point::Union(Vector{T}, Nothing)
 
     no_of_variables::Int
-    A1inv_b::Vector{T}
-    A1inv_A2::Matrix{T}
+    R1inv_c::Vector{T}
+    R1inv_R2::Matrix{T}
 
 
     ineq::Matrix{T}
 
     function InternalSpec{T}(
         evaluation_function::Function,
-        removed_variables_indices::Vector{Int},
+        permutation_vector::Vector,
         inequalities::Matrix{T},
         inequalities_lower::Vector{T},
         inequalities_upper::Vector{T},
@@ -175,23 +175,23 @@ immutable type InternalSpec{T <: FloatingPoint}
         starting_population_type::StartPopType,
         starting_point::Union(Vector{T}, Nothing),
         no_of_variables::Int,
-        A1inv_b::Vector{T},
-        A1inv_A2::Matrix{T})
+        R1inv_c::Vector{T},
+        R1inv_R2::Matrix{T})
 
         operators = collect(keys(operator_mapping))
         operator_frequency = Integer[div(operator_mapping[operator], operator.arity) for operator in operators]
 
         ineq = flipud(rotl90(inequalities))
 
-        new(evaluation_function, removed_variables_indices, inequalities, inequalities_lower, inequalities_upper,
+        new(evaluation_function, permutation_vector, inequalities, inequalities_lower, inequalities_upper,
             lower_bounds, upper_bounds, population_size, max_iterations, operators, operator_frequency, cumulative_prob_coeff,
-            minmax, starting_population_type, starting_point, no_of_variables, A1inv_b, A1inv_A2, ineq)
+            minmax, starting_population_type, starting_point, no_of_variables, R1inv_c, R1inv_R2, ineq)
     end
 end
 
 
 function InternalSpec{T <: FloatingPoint}(evaluation_function::Function,
-    removed_variables_indices::Vector{Int},
+    permutation_vector::Vector,
     inequalities::Matrix{T},
     inequalities_lower::Vector{T},
     inequalities_upper::Vector{T},
@@ -205,12 +205,12 @@ function InternalSpec{T <: FloatingPoint}(evaluation_function::Function,
     starting_population_type::StartPopType,
     starting_point::Union(Vector{T}, Nothing),
     no_of_variables::Int,
-    A1inv_b::Vector{T},
-    A1inv_A2::Matrix{T})
+    R1inv_c::Vector{T},
+    R1inv_R2::Matrix{T})
 
-    InternalSpec{T}(evaluation_function, removed_variables_indices, inequalities, inequalities_lower, inequalities_upper,
+    InternalSpec{T}(evaluation_function, permutation_vector, inequalities, inequalities_lower, inequalities_upper,
         lower_bounds, upper_bounds, population_size, max_iterations, operator_mapping, cumulative_prob_coeff,
-        minmax, starting_population_type, starting_point, no_of_variables, A1inv_b, A1inv_A2)
+        minmax, starting_population_type, starting_point, no_of_variables, R1inv_c, R1inv_R2)
 end
 
 

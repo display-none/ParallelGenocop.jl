@@ -43,3 +43,9 @@ const _default_starting_population = multi_point_start_pop
 const _population_initialization_tries = 10000
 
 
+# what number should represent infinity when getting random number
+_infinity_for_distributions = 65536
+
+function set_infinity_for_distributions(infinity)
+	_infinity_for_distributions = infinity
+end

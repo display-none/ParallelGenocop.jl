@@ -3,6 +3,7 @@
 
 
 
+function test()
 ###
 println("gtm.gms : International Gas Trade Model - Gams models")
 
@@ -81,3 +82,7 @@ println("best fitness: $best_eval")
 
 
 print("\n\n\n")
+
+end
+
+test()
