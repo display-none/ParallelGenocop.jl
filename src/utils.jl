@@ -30,9 +30,25 @@ function has_rows(matrix::Matrix)
     return size(matrix, 1) != 0
 end
 
+function replace_infinities{T <: FloatingPoint}(start::T, stop::T)
+    if start == Inf
+        start = _infinity_for_distributions
+    elseif start == -Inf
+        start = -_infinity_for_distributions
+    end
+    if stop == Inf
+        stop = _infinity_for_distributions
+    elseif stop == -Inf
+        stop = -_infinity_for_distributions
+    end
+    return start, stop
+end
 
 function get_random_float{T <: FloatingPoint}(start::T, stop::T)
-    start in [-Inf, Inf] && stop in [-Inf, Inf] && @error "infinities"      #todo: use realmin and realmax
+    if stop-start == Inf
+        start, stop = replace_infinities(start, stop)
+    end
+
     if start == stop
         return start
     end
@@ -92,7 +108,12 @@ function is_feasible{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSp
 #        value = evaluate_row(ineq, individual, i)
         value = dupa[i]
 
-        if value > ineq_upper[i] || value < ineq_lower[i]
+        if value > ineq_upper[i] + spec.epsilon || value < ineq_lower[i] - spec.epsilon
+            #@info "nooooooo $(spec.inequalities[i, :]), $(ineq_upper[i]), $(ineq_lower[i])"
+            #@info "$i"
+            #@info "nooooooo $(ineq_lower[i]), $(ineq_upper[i])"
+            #@info "fuck $value"
+            #@info "$ineq"
             return false
         end
     end
@@ -105,7 +126,7 @@ function is_within_bounds{T <: FloatingPoint}(individual::Individual, spec::Inte
     (length(upper) == length(individual)) || BoundsError()
     @inbounds for i in 1:length(individual)
         value = individual[i]
-        if value < lower[i] || value > upper[i]
+        if value < lower[i] - spec.epsilon || value > upper[i] + spec.epsilon
             return false
         end
     end

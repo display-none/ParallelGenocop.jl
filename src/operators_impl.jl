@@ -61,6 +61,16 @@ function apply_operator!{T <: FloatingPoint}(operator::WholeNonUniformMutation, 
 
         current_value = child_chromosome[position]
         child_chromosome[position] = find_new_non_uniform_value(current_value, lower_limit, upper_limit, factor)
+        if child_chromosome[position] < 0
+            @info "$lower_limit, $upper_limit"
+            error("kolejna dupa")
+        end
+
+        if isnan(child_chromosome[position]) || child_chromosome[position] == Inf
+            @info "$lower_limit, $upper_limit"
+            @info "$current_value"
+            error("ale dupa")
+        end
         update_inequalities_evaluated(inequalities_evaluated, current_value-child_chromosome[position], position, spec)
     end
 
@@ -90,13 +100,13 @@ function find_limits_for_chromosome_mutation{T <: FloatingPoint}(individual::Ind
 end
 
 function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_evaluated::Vector{T}, chromosome::Vector{T}, position::Integer, spec::InternalSpec{T})
-    lower_limit::T = spec.lower_bounds[position]        #initialize limits to initial variable bounds
-    upper_limit::T = spec.upper_bounds[position]
+    lower_limit::T = -Inf        #initialize limits to initial variable bounds
+    upper_limit::T = Inf
     (length(inequalities_evaluated) == length(spec.inequalities_lower)) || BoundsError()
     checkbounds(chromosome, position)
 
     @inbounds for i = 1:length(spec.inequalities_lower)
-        if spec.inequalities[i, position] == 0
+        if abs(spec.inequalities[i, position]) < eps(T)
             continue
         end
 
@@ -112,18 +122,38 @@ function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_ev
 
         lower_limit = max(lower_limit, new_lower_limit)
         upper_limit = min(upper_limit, new_upper_limit)
+        # if upper_limit < -1
+        #     @info "oooooo $i, $position"
+        #     @info "$(spec.inequalities[i, position])"
+        #     @info "$(spec.inequalities_upper)"
+        #     @info "$(spec.inequalities_lower)"
+        #     @info "$chromosome"
+        #     @info "$total"
+        #     @info "$upper_limit"
+        #     error()
+        # end
     end
 
+    lower_limit = max(lower_limit, spec.lower_bounds[position])
+    upper_limit = min(upper_limit, spec.upper_bounds[position])
+
+    # if lower_limit < 0
+    #     @info "$(spec.lower_bounds[position])"
+    #     @info "$position"
+    # end
+
+    # if upper_limit < 0
+    #     @info "przegięcie"
+    #     @info "$(spec.lower_bounds[position])"
+    #     @info "$position"
+    # end
+
+    lower_limit, upper_limit = replace_infinities(lower_limit, upper_limit)
+
     if lower_limit > upper_limit
-        @warn "Computed range for variable is negative. You may be running into numerical problems. \
-                Results of the algorithm may not be feasible"
-        if lower_limit == spec.lower_bounds[position]
-            return lower_limit, lower_limit
-        elseif upper_limit == spec.upper_bounds[position]
-            return upper_limit, upper_limit
-        else
-            return upper_limit, lower_limit
-        end
+        #@warn "Computed range for variable is negative. You may be running into numerical problems. \
+        #        Results of the algorithm may not be feasible"
+        return max(upper_limit, spec.lower_bounds[position]), min(lower_limit, spec.upper_bounds[position])
     end
 
     return lower_limit, upper_limit

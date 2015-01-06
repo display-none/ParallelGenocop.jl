@@ -17,37 +17,19 @@ end
 
 function extend_with_reduced_variables{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSpec{T})
 
-    if length(spec.removed_variables_indices) == 0
+    if length(spec.R1inv_c) == 0
         return chromosome
     end
 
-    reduced_variables = spec.removed_variables_indices
-    reduced_variables_index = 1
-    reduced_variables_length = length(reduced_variables)
+    # @info "chromosome: $chromosome"
 
-    x1 = spec.A1inv_b - spec.A1inv_A2 * chromosome
+    x1 = spec.R1inv_c - spec.R1inv_R2 * chromosome
     x2 = chromosome
 
-    x1_iter = 1
-    x2_iter = 1
+    new_chromosome = Array(T, length(x1) + length(x2))
+    new_chromosome[spec.permutation_vector] = [x1;x2]
 
-    total_length = length(x1) + length(x2)
-
-    new_chromosome = Array(T, total_length)
-
-    for i in 1:total_length
-        if reduced_variables_index <= reduced_variables_length && i == reduced_variables[reduced_variables_index]
-            value = x1[x1_iter]
-            x1_iter += 1
-            new_chromosome[i] = value
-            reduced_variables_index += 1
-        else
-            value = x2[x2_iter]
-            x2_iter += 1
-            new_chromosome[i] = value
-        end
-    end
-
+    # @info "new: $new_chromosome"
     return new_chromosome
 end
 

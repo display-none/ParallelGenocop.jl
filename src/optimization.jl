@@ -165,6 +165,15 @@ function apply_operator!{T <: FloatingPoint}(operator::Operator, parents::Vector
     for child in children
         set_fitness!(child, evaluate_and_return_fitness(child, spec))
     end
+
+
+    for child in children
+        if !is_feasible(child, spec)
+            @info "not feasible $operator"
+            error()
+        end
+    end
+
     return toq()
 end
 
