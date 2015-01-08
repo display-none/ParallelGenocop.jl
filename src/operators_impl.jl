@@ -61,7 +61,7 @@ function apply_operator!{T <: FloatingPoint}(operator::WholeNonUniformMutation, 
         child_chromosome[position] = 0.0
         inequalities_evaluated = At_mul_B(spec.ineq, child_chromosome)
     
-        lower_limit, upper_limit = find_limits_for_chromosome_mutation(inequalities_evaluated, position, spec)
+        lower_limit, upper_limit = find_limits_for_chromosome_mutation(inequalities_evaluated, position, spec, current_value)
 
         child_chromosome[position] = find_new_non_uniform_value(current_value, lower_limit, upper_limit, factor)
         # if !is_feasible(child_chromosome, spec)
@@ -92,10 +92,10 @@ function find_limits_for_chromosome_mutation{T <: FloatingPoint}(individual::Ind
     chromosome[position] = 0.0
     inequalities_evaluated = At_mul_B(spec.ineq, chromosome)
     chromosome[position] = current_value
-    find_limits_for_chromosome_mutation(inequalities_evaluated, position, spec)
+    find_limits_for_chromosome_mutation(inequalities_evaluated, position, spec, current_value)
 end
 
-function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_evaluated::Vector{T}, position::Integer, spec::InternalSpec{T})
+function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_evaluated::Vector{T}, position::Integer, spec::InternalSpec{T}, default::T)
     lower_limit::T = -Inf        #initialize limits to initial variable bounds
     upper_limit::T = Inf
     (length(inequalities_evaluated) == length(spec.inequalities_lower)) || BoundsError()
@@ -168,7 +168,7 @@ function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_ev
         # end
         # @warn "Computed range for variable is negative. You may be running into numerical problems. \
         #        Results of the algorithm may not be feasible"
-        return max(upper_limit, spec.lower_bounds[position]), min(lower_limit, spec.upper_bounds[position])
+        return default, default
     end
 
     return lower_limit, upper_limit
