@@ -22,6 +22,7 @@ function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual}, s
         total_total += total
         total_computation += computation
         iteration += 1
+        @info "generation $iteration"
     end
 
     sort_population!(new_population, spec.minmax)
@@ -167,12 +168,12 @@ function apply_operator!{T <: FloatingPoint}(operator::Operator, parents::Vector
     end
 
 
-    for child in children
-        if !is_feasible(child, spec)
-            @info "not feasible $operator"
-            error()
-        end
-    end
+    # for child in children
+    #     if !is_feasible(child, spec)
+    #         @info "not feasible $operator"
+    #         error()
+    #     end
+    # end
 
     return toq()
 end

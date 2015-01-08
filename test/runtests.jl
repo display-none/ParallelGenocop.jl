@@ -10,7 +10,7 @@ tests = ["evaluation_test.jl", "genocop_test.jl", "initialization_test.jl",
 
 println("Running tests:")
 for test in tests
-  include(test)
+  # include(test)
 end
 
 @Logging.configure(level=INFO)

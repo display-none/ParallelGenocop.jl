@@ -45,7 +45,7 @@ const _population_initialization_tries = 10000
 
 
 # what number should represent infinity when getting random number
-_infinity_for_distributions = 65536
+_infinity_for_distributions = 65536.0
 
 function set_infinity_for_distributions(infinity)
 	_infinity_for_distributions = infinity

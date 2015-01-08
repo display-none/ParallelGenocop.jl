@@ -9,22 +9,23 @@ println("afiro - netlib lp")
 
 
 @everywhere begin
-lower_bounds = Float64[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-upper_bounds = Float64[Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf]
+lower_bounds = Float32[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+upper_bounds = Float32[Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf,Inf]
 
-equalities = readdlm("afiro_eq", Float64)
-equalities_right = Float64[0, 0, 0, 0, 0, 0, 0, 44.]
+
+equalities = readdlm("afiro_eq", Float32)
+equalities_right = Float32[0, 0, 0, 0, 0, 0, 0, 44.]
 
 # equalities = Array(Float64, 0, 0)
 # equalities_right = Array(Float64, 0)
 
-inequalities = readdlm("afiro_ineq", Float64)
-inequalities_right = Float64[80., 0, 80., 0, 0, 0, 500., 0, 500., 0, 0, 0, 0, 0, 0, 0, 0, 310., 300.]
+inequalities = readdlm("afiro_ineq", Float32)
+inequalities_right = Float32[80., 0, 80., 0, 0, 0, 500., 0, 500., 0, 0, 0, 0, 0, 0, 0, 0, 310., 300.]
 
 
-starting_point = Float64[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 44]
+starting_point = Float32[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 44]
 
-eval_func = function(X::Vector{Float64})
+eval_func = function(X::Vector{Float32})
                 return -.4*X[2]-.32*X[13]-.6*X[17]-.48*X[29]+10.*X[32]
             end
 
@@ -41,7 +42,7 @@ spec_dummy = GenocopSpecification(eval_func, equalities, equalities_right, inequ
                         starting_population_type=single_point_start_pop, minmax = minimization, starting_point = starting_point, epsilon = 1e-5)
 end
 spec = GenocopSpecification(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds, upper_bounds; max_iterations = 6000,
-                        starting_population_type=single_point_start_pop, operator_mapping=operators, population_size=320, minmax = minimization, starting_point = starting_point, epsilon = 1e-8)
+                        starting_population_type=single_point_start_pop, operator_mapping=operators, population_size=320, minmax = minimization, starting_point = starting_point, epsilon = 1e-5)
 
 #genocop(spec_dummy)
 best = @time genocop(spec)

@@ -79,19 +79,47 @@ function evaluate_row_skip_position{T <: FloatingPoint}(matrix::Matrix{T}, indiv
     return evaluate_row(matrix, individual, row_number) - matrix[row_number, position]*individual[position]
 end
 
-function evaluate_row1{T <: FloatingPoint}(matrix::Matrix{T}, individual::Individual, row_number)
-    population_data = population_data_holder.population_data
-    col = individual.column
-    (length(individual) == size(matrix, 1) && 1 <= row_number <= size(matrix, 2) && 1 <= col <= size(population_data, 2)) || BoundsError()
+function evaluate_row1{T <: FloatingPoint}(matrix::Matrix{T}, chromosome::Vector{T}, row_number)
+    (length(chromosome) == size(matrix, 1) && 1 <= row_number <= size(matrix, 2)) || BoundsError()
     s = 0.0
-    @inbounds for i=1:length(individual)
-        s = s + matrix[i, row_number] * population_data[i, col]
+    @inbounds for i=1:length(chromosome)
+        s = s + matrix[i, row_number] * chromosome[i]
     end
     return s
 end
 
-function evaluate_row_skip_position1{T <: FloatingPoint}(matrix::Matrix{T}, individual::Individual, row_number, position)
-    return evaluate_row1(matrix, individual, row_number) - matrix[position, row_number]*individual[position]
+function evaluate_row_skip_position1{T <: FloatingPoint}(matrix::Matrix{T}, chromosome::Vector{T}, row_number, position)
+    chromosome[position] = 0.0
+    return evaluate_row1(matrix, chromosome, row_number)
+end
+
+function is_feasible_pseudo{T <: FloatingPoint}(individual::Individual, spec::InternalSpec{T})
+    chromosome = get_chromosome(individual)
+    is_feasible(chromosome, spec)
+end
+
+function is_feasible_pseudo{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSpec{T})
+    ineq = spec.inequalities
+    ineq_lower = spec.inequalities_lower
+    ineq_upper = spec.inequalities_upper
+    dupa = At_mul_B(spec.ineq, chromosome)
+    @inbounds for i in 1:size(ineq, 1)
+#        value = evaluate_row(ineq, individual, i)
+        value = dupa[i]
+
+        tolerance_upper = ineq_upper[i] != 0.0 ? spec.epsilon * abs(ineq_upper[i]) : spec.epsilon
+        tolerance_lower = ineq_lower[i] != 0.0 ? spec.epsilon * abs(ineq_lower[i]) : spec.epsilon
+        if value > ineq_upper[i] + tolerance_upper || value < ineq_lower[i] - tolerance_lower
+            # @info "nooooooo $(spec.inequalities[i, :]), $(ineq_upper[i]), $(ineq_lower[i])"
+            @info "$i"
+            @info "nooooooo $(ineq_lower[i]), $(ineq_upper[i])"
+            @info "fuck $value"
+            @info "$chromosome"
+            # @info "$ineq"
+            return false
+        end
+    end
+    return true
 end
 
 function is_feasible{T <: FloatingPoint}(individual::Individual, spec::InternalSpec{T})
@@ -108,12 +136,7 @@ function is_feasible{T <: FloatingPoint}(chromosome::Vector{T}, spec::InternalSp
 #        value = evaluate_row(ineq, individual, i)
         value = dupa[i]
 
-        if value > ineq_upper[i] + spec.epsilon || value < ineq_lower[i] - spec.epsilon
-            #@info "nooooooo $(spec.inequalities[i, :]), $(ineq_upper[i]), $(ineq_lower[i])"
-            #@info "$i"
-            #@info "nooooooo $(ineq_lower[i]), $(ineq_upper[i])"
-            #@info "fuck $value"
-            #@info "$ineq"
+        if value > ineq_upper[i] || value < ineq_lower[i]
             return false
         end
     end
@@ -126,7 +149,7 @@ function is_within_bounds{T <: FloatingPoint}(individual::Individual, spec::Inte
     (length(upper) == length(individual)) || BoundsError()
     @inbounds for i in 1:length(individual)
         value = individual[i]
-        if value < lower[i] - spec.epsilon || value > upper[i] + spec.epsilon
+        if value < lower[i] || value > upper[i]
             return false
         end
     end

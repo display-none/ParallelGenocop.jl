@@ -53,25 +53,24 @@ function apply_operator!{T <: FloatingPoint}(operator::WholeNonUniformMutation, 
 
     child_chromosome = get_chromosome(parent)
     factor = (1 - (iteration / spec.max_iterations) ) ^ operator.degree_of_non_uniformity
-    inequalities_evaluated = At_mul_B(spec.ineq, child_chromosome)
     for position in randperm(length(child_chromosome))
         # TODO: optimize finding limits so that all limits are found in one call
         # update: probably not possible since with every position changed limits change
-        lower_limit, upper_limit = find_limits_for_chromosome_mutation(inequalities_evaluated, child_chromosome, position, spec)
-
+        @debug "whole non-uniform on position $position"
         current_value = child_chromosome[position]
-        child_chromosome[position] = find_new_non_uniform_value(current_value, lower_limit, upper_limit, factor)
-        if child_chromosome[position] < 0
-            @info "$lower_limit, $upper_limit"
-            error("kolejna dupa")
-        end
+        child_chromosome[position] = 0.0
+        inequalities_evaluated = At_mul_B(spec.ineq, child_chromosome)
+    
+        lower_limit, upper_limit = find_limits_for_chromosome_mutation(inequalities_evaluated, position, spec)
 
-        if isnan(child_chromosome[position]) || child_chromosome[position] == Inf
-            @info "$lower_limit, $upper_limit"
-            @info "$current_value"
-            error("ale dupa")
-        end
-        update_inequalities_evaluated(inequalities_evaluated, current_value-child_chromosome[position], position, spec)
+        child_chromosome[position] = find_new_non_uniform_value(current_value, lower_limit, upper_limit, factor)
+        # if !is_feasible(child_chromosome, spec)
+        #     @info "$lower_limit, $upper_limit"
+        #     @info "$position"
+        #     @info "$(child_chromosome[position])"
+        #     error("kolejna dupa")
+        # end
+
     end
 
     set_chromosome!(child, child_chromosome)
@@ -87,34 +86,28 @@ function find_new_non_uniform_value{T <: FloatingPoint}(current_value::T, lower_
     end
 end
 
-function update_inequalities_evaluated{T <: FloatingPoint}(inequalities_evaluated::Vector{T}, difference::T, position::Int, spec::InternalSpec{T})
-    @inbounds for i = 1:length(inequalities_evaluated)
-        inequalities_evaluated[i] -= spec.ineq[position, i] * difference
-    end
-end
-
 function find_limits_for_chromosome_mutation{T <: FloatingPoint}(individual::Individual, position::Integer, spec::InternalSpec{T})
     chromosome = get_chromosome(individual)
+    current_value = chromosome[position]
+    chromosome[position] = 0.0
     inequalities_evaluated = At_mul_B(spec.ineq, chromosome)
-    find_limits_for_chromosome_mutation(inequalities_evaluated, chromosome, position, spec)
+    chromosome[position] = current_value
+    find_limits_for_chromosome_mutation(inequalities_evaluated, position, spec)
 end
 
-function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_evaluated::Vector{T}, chromosome::Vector{T}, position::Integer, spec::InternalSpec{T})
+function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_evaluated::Vector{T}, position::Integer, spec::InternalSpec{T})
     lower_limit::T = -Inf        #initialize limits to initial variable bounds
     upper_limit::T = Inf
     (length(inequalities_evaluated) == length(spec.inequalities_lower)) || BoundsError()
-    checkbounds(chromosome, position)
-
+    
     @inbounds for i = 1:length(spec.inequalities_lower)
-        if abs(spec.inequalities[i, position]) < eps(T)
+        #if abs(spec.inequalities[i, position]) < eps(T)
+        if spec.inequalities[i, position] == 0.0
             continue
         end
 
-#        total = evaluate_row_skip_position1(spec.ineq, individual, i, position)
-        total = inequalities_evaluated[i] - spec.inequalities[i, position] * chromosome[position]
-
-        new_lower_limit = (spec.inequalities_lower[i] - total) / spec.inequalities[i, position]
-        new_upper_limit = (spec.inequalities_upper[i] - total) / spec.inequalities[i, position]
+        new_lower_limit = (spec.inequalities_lower[i] - inequalities_evaluated[i]) / spec.inequalities[i, position]
+        new_upper_limit = (spec.inequalities_upper[i] - inequalities_evaluated[i]) / spec.inequalities[i, position]
 
         if spec.inequalities[i, position] < 0         #when dividing by a negative number the inequalities are swapped
             new_lower_limit, new_upper_limit = new_upper_limit, new_lower_limit
@@ -150,8 +143,30 @@ function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_ev
 
     lower_limit, upper_limit = replace_infinities(lower_limit, upper_limit)
 
+    # val = chromosome[position]
+    # chromosome[position] = lower_limit
+    # if !is_feasible_pseudo(chromosome, spec)
+    #     @info "nope1 $chromosome"
+    #     @info "$position"
+    #     @info "$lower_limit"
+    #     error()
+    # end
+    # chromosome[position] = upper_limit
+    # if !is_feasible_pseudo(chromosome, spec)
+    #     @info "nope2 $chromosome"
+    #     @info "$position"
+    #     @info "$upper_limit"
+    #     error()
+    # end
+    # chromosome[position] = val
+
     if lower_limit > upper_limit
-        #@warn "Computed range for variable is negative. You may be running into numerical problems. \
+        # if lower_limit - upper_limit > 10
+        #     @info "kurwa $lower_limit, $upper_limit"
+        #     @info "$position"
+        #     error()
+        # end
+        # @warn "Computed range for variable is negative. You may be running into numerical problems. \
         #        Results of the algorithm may not be feasible"
         return max(upper_limit, spec.lower_bounds[position]), min(lower_limit, spec.upper_bounds[position])
     end

@@ -10,11 +10,11 @@ function reduce_equalities{T <: FloatingPoint}(spec::GenocopSpecification{T})
 
     internal_spec = reduce_and_create_spec(permutation_vector, R1inv_c, R1inv_R2, spec)
     @info "$(length(R1inv_c)) variables were reduced"
+    # @info "$(permutation_vector[1:length(R1inv_c)])"
     return internal_spec
 end
 
 
-# my naming is as follows: R1 := R11, R2 := [R12 R13]
 function qr_factorize{T <: FloatingPoint}(spec::GenocopSpecification{T})
     A = spec.equalities
     b = spec.equalities_right
@@ -31,6 +31,9 @@ function qr_factorize{T <: FloatingPoint}(spec::GenocopSpecification{T})
 
     R1inv_c = R1inv * c[1:k]
     R1inv_R2 = R1inv * R2
+
+    # remove_near_zeroes!(R1inv_c)
+    # remove_near_zeroes!(R1inv_R2)
 
     return qr[:p], R1inv_c, R1inv_R2
 end
@@ -78,6 +81,13 @@ function reduce_and_create_spec{T <: FloatingPoint}(permutation_vector::Vector, 
 
     variables_to_reduce, remaining_variables = permutation_vector[1 : num_of_equalities], permutation_vector[num_of_equalities+1 : end]
 
+    A1 = getindex(spec.equalities, 1:num_of_equalities, variables_to_reduce)
+    A2 = getindex(spec.equalities, 1:num_of_equalities, remaining_variables)
+    # computing A1inv_b = product of inverse of A1 and b (right hand side of equations
+    A1inv = inv(A1)
+    R1inv_c = A1inv * spec.equalities_right
+    R1inv_R2 = A1inv * A2
+
     # original inequalities get divided into W1 and W2
     num_of_inequalities = length(spec.inequalities_lower)
     W1 = getindex(spec.inequalities, 1:num_of_inequalities, variables_to_reduce)
@@ -104,6 +114,14 @@ function reduce_and_create_spec{T <: FloatingPoint}(permutation_vector::Vector, 
 
     # now the number of variables the algorithm is going to work on is smaller
     no_of_variables = length(new_lower_bounds)
+
+    # remove_near_zeroes!(new_inequalities)
+    # remove_near_zeroes!(new_inequalities_lower)
+    # remove_near_zeroes!(new_inequalities_upper)
+    # remove_near_zeroes!(new_lower_bounds)
+    # remove_near_zeroes!(new_upper_bounds)
+    # remove_near_zeroes!(R1inv_c)
+    # remove_near_zeroes!(R1inv_R2)
 
     # packing it all into the spec and voila
     return InternalSpec(spec.evaluation_function,
@@ -160,4 +178,23 @@ function convert_no_equalities_spec_into_internal{T <: FloatingPoint}(spec::Geno
                         no_of_variables,
                         R1inv_c,
                         R1inv_R2)
+end
+
+
+function remove_near_zeroes!{T <: FloatingPoint}(matrix::Matrix{T})
+    for col in 1:size(matrix, 2)
+        for row in 1:size(matrix, 1)
+            if abs(matrix[row, col]) < 100*eps(T)
+                matrix[row, col] = 0.0
+            end
+        end
+    end
+end
+
+function remove_near_zeroes!{T <: FloatingPoint}(vector::Vector{T})
+    for i in 1:length(vector)
+        if abs(vector[i]) < 100*eps(T)
+            vector[i] = 0.0
+        end
+    end
 end

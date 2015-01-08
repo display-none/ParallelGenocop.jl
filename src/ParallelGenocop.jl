@@ -23,7 +23,7 @@ export
     GenocopSpecification, Individual
 
 @Logging.configure(level=DEBUG)
-# blas_set_num_threads(2)
+blas_set_num_threads(2)
 
 
 include("operator_types.jl")

@@ -29,10 +29,10 @@ function initialize_population_specified_point{T <: FloatingPoint}(spec::Interna
     @debug "beginning to initialize single point population from specified starting point"
     starting_point = spec.starting_point
     no_of_removed_variables = length(spec.R1inv_c)
-    permutated = Array(T, length(spec.permutation_vector))
-    permutated[spec.permutation_vector] = spec.starting_point
+    # permutated = Array(T, length(spec.permutation_vector))
+    permutated = spec.starting_point[spec.permutation_vector]
     chromosome = permutated[no_of_removed_variables+1 : end]
-    if !is_feasible(chromosome, spec)
+    if !is_feasible_pseudo(chromosome, spec)
         @error "The point specified in GenocopSpec is not feasible"
         error("starting point not feasible")
     end
