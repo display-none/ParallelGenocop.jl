@@ -10,6 +10,8 @@ println("pilot87 - netlib lp")
 
 @everywhere begin
 
+blas_set_num_threads(30)
+
 function loosen_it(plus_minus, parameter, vector)
 	result = similar(vector)
 	for i=1:length(vector)
@@ -48,7 +50,7 @@ eval_func = function(X::Vector{Float64})
 operators = Dict{Operator,Integer}(UniformMutation() => 15,
                                 BoundaryMutation() => 15,
                                 NonUniformMutation() => 15,
-                                WholeNonUniformMutation() => 5,
+                                WholeNonUniformMutation() => 2,
                                 ArithmeticalCrossover() => 40,
                                 SimpleCrossover() => 40,
                                 HeuristicCrossover() => 40)
