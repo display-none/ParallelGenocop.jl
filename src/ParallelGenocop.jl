@@ -48,6 +48,7 @@ include("optimization.jl")
 function genocop{T <: FloatingPoint}(specification::GenocopSpecification{T})
     @debug "genocop starting"
     internal_spec = reduce_equalities(specification)
+    @info "Run parameters:\n\n iterations: $(specification.max_iterations) \n population size: $(specification.population_size) \n operators: $(specification.operator_mapping)"
     population_data, fitness_data = initialize_population_data(internal_spec)
 
     for process in procs()
