@@ -81,12 +81,12 @@ function reduce_and_create_spec{T <: FloatingPoint}(permutation_vector::Vector, 
 
     variables_to_reduce, remaining_variables = permutation_vector[1 : num_of_equalities], permutation_vector[num_of_equalities+1 : end]
 
-    A1 = getindex(spec.equalities, 1:num_of_equalities, variables_to_reduce)
-    A2 = getindex(spec.equalities, 1:num_of_equalities, remaining_variables)
-    # computing A1inv_b = product of inverse of A1 and b (right hand side of equations
-    A1inv = inv(A1)
-    R1inv_c = A1inv * spec.equalities_right
-    R1inv_R2 = A1inv * A2
+    # A1 = getindex(spec.equalities, 1:num_of_equalities, variables_to_reduce)
+    # A2 = getindex(spec.equalities, 1:num_of_equalities, remaining_variables)
+    # # computing A1inv_b = product of inverse of A1 and b (right hand side of equations
+    # A1inv = inv(A1)
+    # R1inv_c = A1inv * spec.equalities_right
+    # R1inv_R2 = A1inv * A2
 
     # original inequalities get divided into W1 and W2
     num_of_inequalities = length(spec.inequalities_lower)

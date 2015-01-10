@@ -169,8 +169,9 @@ function apply_operator!{T <: FloatingPoint}(operator::Operator, parents::Vector
 
 
     # for child in children
-    #     if !is_feasible(child, spec)
-    #         @info "not feasible $operator"
+    #     if is_feasible(child, spec)
+    #         @info "fuck yeah!"
+    #         @info "$child"
     #         error()
     #     end
     # end
