@@ -84,6 +84,7 @@ function get_feasible_chromosome{T <: FloatingPoint}(spec::InternalSpec{T})
         random_chromosome = get_random_chromosome_within_bounds(spec)
 
         if is_feasible(random_chromosome, spec)
+            @info "found: $random_chromosome"
             return random_chromosome
         end
     end

@@ -41,11 +41,11 @@ const _default_epsilon = 0.0
 
 
 # constants for population initialization
-const _population_initialization_tries = 10000
+const _population_initialization_tries = 1000000
 
 
 # what number should represent infinity when getting random number
-_infinity_for_distributions = 65536.0
+_infinity_for_distributions = 1e150
 
 function set_infinity_for_distributions(infinity)
 	_infinity_for_distributions = infinity

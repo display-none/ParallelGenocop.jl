@@ -10,7 +10,7 @@ println("pilot87 - netlib lp")
 
 @everywhere begin
 
-blas_set_num_threads(30)
+blas_set_num_threads(16)
 
 function loosen_it(plus_minus, parameter, vector)
 	result = similar(vector)
