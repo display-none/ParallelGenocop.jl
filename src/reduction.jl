@@ -10,7 +10,7 @@ function reduce_equalities{T <: FloatingPoint}(spec::GenocopSpecification{T})
 
     internal_spec = reduce_and_create_spec(permutation_vector, R1inv_c, R1inv_R2, spec)
     @info "$(length(R1inv_c)) variables were reduced"
-    # @info "$(permutation_vector[1:length(R1inv_c)])"
+    @info "$(permutation_vector[1:length(R1inv_c)])"
     return internal_spec
 end
 

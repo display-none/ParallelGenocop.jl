@@ -6,16 +6,17 @@ function optimize!{T <: FloatingPoint}(initial_population::Vector{Individual}, s
     new_population = initial_population
     iteration = 1
 
+    cumulative_probabilities = cumsum(compute_probabilities!(spec.population_size, spec.cumulative_prob_coeff))    #can be changed to cumsum_kbn for increased accuracy
 
     total_total = 0.0
     total_computation = 0.0
 
     while iteration < spec.max_iterations
         generation = Generation(iteration, new_population, copy(spec.operator_frequency))
+        generation.cumulative_probabilities = cumulative_probabilities
 
         population = generation.population
         sort_population!(population, spec.minmax)
-        generation.cumulative_probabilities = cumsum(compute_probabilities!(population, spec.cumulative_prob_coeff))    #can be changed to cumsum_kbn for increased accuracy
         best_individual = find_best_individual(best_individual, population[1], spec.minmax, iteration)
 
         new_population, total, computation = apply_operators_to_create_new_population!(generation, spec)

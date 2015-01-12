@@ -13,11 +13,11 @@ end
 
 # the probabilities are basically Q, Q*(1-Q), Q*(1-Q)^2, ..., Q*(1-Q)^n
 # it's just slightly modified to sum to 1
-function compute_probabilities!(population::Vector{Individual}, cumulative_prob_coeff)
-    probabilities = Array(Float64, length(population))
+function compute_probabilities!(population_size::Int, cumulative_prob_coeff)
+    probabilities = Array(Float64, population_size)
     Q = cumulative_prob_coeff
-    Q1 = Q / (1 - (1 - Q)^length(population))
-    @inbounds for i in 1:length(population)
+    Q1 = Q / (1 - (1 - Q)^population_size)
+    @inbounds for i in 1:population_size
         probabilities[i] = Q1 * (1 - Q)^(i-1)
     end
     return probabilities

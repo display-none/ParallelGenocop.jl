@@ -41,7 +41,7 @@ const _default_epsilon = 0.0
 
 
 # constants for population initialization
-const _population_initialization_tries = 1000000
+const _population_initialization_tries = 10000
 
 
 # what number should represent infinity when getting random number

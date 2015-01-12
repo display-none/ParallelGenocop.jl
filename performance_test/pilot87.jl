@@ -59,7 +59,7 @@ operators = Dict{Operator,Integer}(UniformMutation() => 15,
 spec_dummy = GenocopSpecification(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds, upper_bounds; max_iterations = 3,
                         starting_population_type=single_point_start_pop, minmax = minimization, starting_point = starting_point, epsilon = 1e-3)
 end
-spec = GenocopSpecification(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds, upper_bounds; max_iterations = 6000,
+spec = GenocopSpecification(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds, upper_bounds; max_iterations = 6000, cumulative_prob_coeff = 0.018,
                         starting_population_type=single_point_start_pop, operator_mapping=operators, population_size=400, minmax = minimization, starting_point = starting_point, epsilon = 0.0)
 
 #genocop(spec_dummy)

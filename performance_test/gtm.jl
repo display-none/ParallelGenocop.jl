@@ -63,8 +63,8 @@ operators = (Operator=>Integer)[UniformMutation() => 20,
 spec_dummy = GenocopSpecification(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds, upper_bounds; max_iterations = 3,
                         starting_population_type=single_point_start_pop, minmax = maximization, starting_point=starting_point)
 end
-spec = GenocopSpecification(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds, upper_bounds; max_iterations = 6000,
-                        starting_population_type=single_point_start_pop, operator_mapping=operators, population_size=320, minmax = maximization, starting_point=starting_point)
+spec = GenocopSpecification(eval_func, equalities, equalities_right, inequalities, inequalities_right, lower_bounds, upper_bounds; max_iterations = 6000, cumulative_prob_coeff = 0.018,
+                        starting_population_type=single_point_start_pop, operator_mapping=operators, population_size=400, minmax = maximization, starting_point=starting_point)
 
 genocop(spec_dummy)
 best = @time genocop(spec)

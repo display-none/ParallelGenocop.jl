@@ -24,7 +24,7 @@ function apply_operator!{T <: FloatingPoint}(operator::BoundaryMutation, parents
     lower_limit, upper_limit = find_limits_for_chromosome_mutation(parent, position, spec)
 
     copy_into(child, parent)
-    child[position] = randbool() ? lower_limit : upper_limit
+    child[position] = rand(Bool) ? lower_limit : upper_limit
 end
 
 
@@ -77,7 +77,7 @@ function apply_operator!{T <: FloatingPoint}(operator::WholeNonUniformMutation, 
 end
 
 function find_new_non_uniform_value{T <: FloatingPoint}(current_value::T, lower_limit::T, upper_limit::T, factor::Float64)
-    if randbool()
+    if rand(Bool)
         y = current_value - lower_limit
         return current_value - y * rand() * factor
     else
@@ -217,7 +217,7 @@ function apply_operator!{T <: FloatingPoint}(operator::SimpleCrossover, parents:
     cut_point = rand(1:length(first_parent))
     cross_range::UnitRange
     copy_range::UnitRange
-    if randbool()
+    if rand(Bool)
         cross_range = 1:cut_point
         copy_range = cut_point+1 : length(first_parent)
     else
