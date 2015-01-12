@@ -12,11 +12,11 @@ println("standata - netlib lp")
 function loosen_it(plus_minus, parameter, vector)
 	result = similar(vector)
 	for i=1:length(vector)
-		# if abs(vector[i]) < 1
+		if abs(vector[i]) < 1
 			result[i] = plus_minus(vector[i], parameter)
-		# else
-		# 	result[i] = plus_minus(vector[i], abs(vector[i])*parameter)
-		# end
+		else
+			result[i] = plus_minus(vector[i], abs(vector[i])*parameter)
+		end
 	end
 	return result
 end
@@ -32,7 +32,7 @@ equalities_right = Float64[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 inequalities = readdlm("standata_ineq", Float64)
 inequalities_right = Float64[1500.,1500.,1500.,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.,0,0,0,0,0,0,0,0,0,1.,0,0,0,0,0,0,0,0,0,1.,0,0,0,0,0,0,0,0,0,1.,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
-param = 2.0
+param = 1e-3
 lower_bounds = loosen_it(-, param, lower_bounds)
 upper_bounds = loosen_it(+, param, upper_bounds)
 inequalities_right = loosen_it(+, param, inequalities_right)

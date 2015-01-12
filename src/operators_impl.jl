@@ -64,13 +64,6 @@ function apply_operator!{T <: FloatingPoint}(operator::WholeNonUniformMutation, 
         lower_limit, upper_limit = find_limits_for_chromosome_mutation(inequalities_evaluated, position, spec, current_value)
 
         child_chromosome[position] = find_new_non_uniform_value(current_value, lower_limit, upper_limit, factor)
-        # if !is_feasible(child_chromosome, spec)
-        #     @info "$lower_limit, $upper_limit"
-        #     @info "$position"
-        #     @info "$(child_chromosome[position])"
-        #     error("kolejna dupa")
-        # end
-
     end
 
     set_chromosome!(child, child_chromosome)
@@ -115,57 +108,14 @@ function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_ev
 
         lower_limit = max(lower_limit, new_lower_limit)
         upper_limit = min(upper_limit, new_upper_limit)
-        # if upper_limit < -1
-        #     @info "oooooo $i, $position"
-        #     @info "$(spec.inequalities[i, position])"
-        #     @info "$(spec.inequalities_upper)"
-        #     @info "$(spec.inequalities_lower)"
-        #     @info "$chromosome"
-        #     @info "$total"
-        #     @info "$upper_limit"
-        #     error()
-        # end
     end
 
     lower_limit = max(lower_limit, spec.lower_bounds[position])
     upper_limit = min(upper_limit, spec.upper_bounds[position])
 
-    # if lower_limit < 0
-    #     @info "$(spec.lower_bounds[position])"
-    #     @info "$position"
-    # end
-
-    # if upper_limit < 0
-    #     @info "przegięcie"
-    #     @info "$(spec.lower_bounds[position])"
-    #     @info "$position"
-    # end
-
     lower_limit, upper_limit = replace_infinities(lower_limit, upper_limit)
 
-    # val = chromosome[position]
-    # chromosome[position] = lower_limit
-    # if !is_feasible_pseudo(chromosome, spec)
-    #     @info "nope1 $chromosome"
-    #     @info "$position"
-    #     @info "$lower_limit"
-    #     error()
-    # end
-    # chromosome[position] = upper_limit
-    # if !is_feasible_pseudo(chromosome, spec)
-    #     @info "nope2 $chromosome"
-    #     @info "$position"
-    #     @info "$upper_limit"
-    #     error()
-    # end
-    # chromosome[position] = val
-
     if lower_limit > upper_limit
-        # if lower_limit - upper_limit > 10
-        #     @info "kurwa $lower_limit, $upper_limit"
-        #     @info "$position"
-        #     error()
-        # end
         # @warn "Computed range for variable is negative. You may be running into numerical problems. \
         #        Results of the algorithm may not be feasible"
         return default, default
