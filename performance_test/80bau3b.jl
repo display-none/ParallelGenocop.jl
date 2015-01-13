@@ -47,7 +47,7 @@ function eval_func(X::Vector{Float64})
 operators = Dict{Operator,Integer}(UniformMutation() => 15,
                                 BoundaryMutation() => 15,
                                 NonUniformMutation() => 15,
-                                WholeNonUniformMutation() => 3,
+                                WholeNonUniformMutation() => 1,
                                 ArithmeticalCrossover() => 40,
                                 SimpleCrossover() => 40,
                                 HeuristicCrossover() => 40)
