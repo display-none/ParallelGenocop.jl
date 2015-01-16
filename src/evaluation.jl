@@ -21,16 +21,13 @@ function extend_with_reduced_variables{T <: FloatingPoint}(chromosome::Vector{T}
         return chromosome
     end
 
-    # @info "chromosome: $chromosome"
-
     x1 = spec.R1inv_c - spec.R1inv_R2 * chromosome
     x2 = chromosome
 
     new_chromosome = Array(T, length(x1) + length(x2))
     new_chromosome[spec.permutation_vector] = [x1;x2]
 
-    # @info "new: $new_chromosome"
-    return new_chromosome
+     return new_chromosome
 end
 
 function call_evaluation_function{T <: FloatingPoint}(chromosome::Vector{T}, evaluation_func::Function)

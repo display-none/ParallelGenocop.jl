@@ -94,7 +94,6 @@ function find_limits_for_chromosome_mutation{T <: FloatingPoint}(inequalities_ev
     (length(inequalities_evaluated) == length(spec.inequalities_lower)) || BoundsError()
     
     @inbounds for i = 1:length(spec.inequalities_lower)
-        #if abs(spec.inequalities[i, position]) < eps(T)
         if spec.inequalities[i, position] == 0.0
             continue
         end

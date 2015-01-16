@@ -110,12 +110,6 @@ function is_feasible_pseudo{T <: FloatingPoint}(chromosome::Vector{T}, spec::Int
         tolerance_upper = ineq_upper[i] != 0.0 ? spec.epsilon * abs(ineq_upper[i]) : spec.epsilon
         tolerance_lower = ineq_lower[i] != 0.0 ? spec.epsilon * abs(ineq_lower[i]) : spec.epsilon
         if value > ineq_upper[i] + tolerance_upper || value < ineq_lower[i] - tolerance_lower
-            # @info "nooooooo $(spec.inequalities[i, :]), $(ineq_upper[i]), $(ineq_lower[i])"
-            @info "$i"
-            @info "nooooooo $(ineq_lower[i]), $(ineq_upper[i])"
-            @info "fuck $value"
-            @info "$chromosome"
-            # @info "$ineq"
             return false
         end
     end

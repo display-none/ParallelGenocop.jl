@@ -42,13 +42,12 @@ include("optimization.jl")
 
 #all inequalities assume that left hand side is LESS OR EQUAL to the right hand side
 
-#evaluation_function must be a function accepting one argument: an AbstractVector{T}
+#evaluation_function must be a function accepting one argument: a Vector{T}
 
-# TODO: maybe it's possible to accept Numbers instead of FloatingPoints
 function genocop{T <: FloatingPoint}(specification::GenocopSpecification{T})
     @debug "genocop starting"
-    internal_spec = reduce_equalities(specification)
     @info "Run parameters:\n\n iterations: $(specification.max_iterations) \n population size: $(specification.population_size) \n operators: $(specification.operator_mapping)"
+    internal_spec = reduce_equalities(specification)
     population_data, fitness_data = initialize_population_data(internal_spec)
 
     for process in procs()
@@ -59,11 +58,10 @@ function genocop{T <: FloatingPoint}(specification::GenocopSpecification{T})
     best_individual = optimize!(population, internal_spec)
 
     best_extended = extend_with_reduced_variables(best_individual, internal_spec)
-    best_real = typeof(best_extended) <: Vector ? best_extended : [best_extended[i] for i=1:length(best_extended)]
-    @info "best individual: $best_real"
+    @info "best individual: $best_extended"
     feasible = is_feasible(best_individual, internal_spec)
     @info "individual feasible: $feasible"
-    return best_real
+    return best_extended
 end
 
 
